@@ -22,4 +22,11 @@
   - Initialized `server/package.json` with ES module support (`"type": "module"`).
   - Implemented config-driven business rules in `server/src/config/erpConfig.js`.
   - Implemented resilient Mongoose database connection in `server/src/config/databaseConnection.js`.
+- **Entry 004 - Core Odoo Engine Primitives & Security Gates:**
+  - Implemented atomic sequence generator (`ir.sequence`) in `server/src/core/sequenceRegistry.js`.
+  - Implemented immutable Finite State Machine lifecycle validator in `server/src/core/finiteStateMachine.js`.
+  - Implemented immutable double-entry general ledger in `server/src/core/doubleEntryLedger.js`.
+  - Implemented strict Zod schema parsing interceptor in `server/src/middleware/schemaValidator.js`.
+  - Implemented HTTP-Only cookie JWT verification in `server/src/middleware/authenticationGate.js`.
+  - Implemented 4-tier Role-Based Access Control gate in `server/src/middleware/rbacAuthorization.js`.
 
