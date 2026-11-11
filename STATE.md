@@ -3,7 +3,7 @@
  * @RESPONSIBILITY: Inventory ledger documenting React Context providers, state variables, and custom hooks.
  * @DEPENDENCIES: React 19 Frontend architecture.
  * @MODIFICATION_HOTSPOT: State inventory table.
- * @AUTHOR: Garima Mittal, Principal Enterprise Solutions Architect
+ * @AUTHOR: Garima Mittal
  */
 
 # 🧠 ClubSphere: Global Client State Inventory
@@ -16,3 +16,4 @@
 | `NavigationPaletteContext` | `isPaletteVisible`, `paletteQuery`, `navigationalRoutes` | Intercepts `Ctrl + K` / `Cmd + K` keyboard shortcuts to display a high-velocity command search palette modal for instant zero-click navigation. |
 | `ThemeContext` | `themeMode`, `activeSidebarSubdomain` | Manages Odoo enterprise interface density, multi-column workspace layout, and navigation breadcrumb hierarchy. |
 | `OfflineAlertContext` | `isCloudNodeOffline`, `networkLatencyMs` | Triggers the top-docked latency alert: "⚠️ [ERP System Alert]: Cloud Node latency detected. Transitioning to fallback offline processing state." |
+

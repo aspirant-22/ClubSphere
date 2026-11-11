@@ -3,7 +3,7 @@
  * @RESPONSIBILITY: Master configuration dictionary, environment variable specifications, and local runbook.
  * @DEPENDENCIES: Node.js server and Vite client environments.
  * @MODIFICATION_HOTSPOT: Variable definitions and default ports.
- * @AUTHOR: Garima Mittal, Principal Enterprise Solutions Architect
+ * @AUTHOR: Garima Mittal
  */
 
 # 🌐 ClubSphere: Environment Configuration & Runbook
@@ -61,3 +61,4 @@ VITE_API_TIMEOUT_MS=8000
    npm install
    npm run dev     # Starts Vite development server on port 5173
    ```
+

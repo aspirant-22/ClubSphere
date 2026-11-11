@@ -3,7 +3,7 @@
  * @RESPONSIBILITY: Master ledger tracking API trigger pathways, controller bindings, and database write impacts.
  * @DEPENDENCIES: Express router definitions across all server modules.
  * @MODIFICATION_HOTSPOT: API endpoint specification matrix.
- * @AUTHOR: Garima Mittal, Principal Enterprise Solutions Architect
+ * @AUTHOR: Garima Mittal
  */
 
 # 🛣️ ClubSphere: REST API Pathways & Database Impacts
@@ -39,3 +39,4 @@
 | `GET` | `/api/v1/broadcasts` | `listAnnouncements` | Public / Auth | Read query filtered by audience tier |
 | `POST` | `/api/v1/broadcasts` | `publishClubAnnouncement` | Operations, Admin| Inserts `broadcasts`; emits real-time WebSocket event |
 | `GET` | `/api/v1/diagnostics/logs` | `streamDiagnosticLogs` | Admin | Read query over live in-memory diagnostic buffer |
+

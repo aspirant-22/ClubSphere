@@ -3,7 +3,7 @@
  * @RESPONSIBILITY: Production Mongoose MongoDB connection pooling with connection monitoring.
  * @DEPENDENCIES: mongoose, dotenv.
  * @MODIFICATION_HOTSPOT: Mongoose connection options and URI fallback.
- * @AUTHOR: Garima Mittal, Principal Enterprise Solutions Architect
+ * @AUTHOR: Garima Mittal
  */
 
 import mongoose from 'mongoose';
@@ -36,3 +36,4 @@ mongoose.connection.on('disconnected', () => {
 mongoose.connection.on('error', (eventError) => {
   console.error(`[DB Event Error]: MongoDB runtime connection error: ${eventError.message}`);
 });
+

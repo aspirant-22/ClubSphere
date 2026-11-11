@@ -3,7 +3,7 @@
  * @RESPONSIBILITY: Central config-driven business logic parameters and operational thresholds for Skyline Association.
  * @DEPENDENCIES: None (Pure configuration manifest).
  * @MODIFICATION_HOTSPOT: ERP_SYSTEM_PARAMETERS object.
- * @AUTHOR: Garima Mittal, Principal Enterprise Solutions Architect
+ * @AUTHOR: Garima Mittal
  */
 
 export const ERP_SYSTEM_PARAMETERS = {
@@ -42,3 +42,4 @@ export const ERP_SYSTEM_PARAMETERS = {
     SCRAP: 'Location:Inventory_Loss_Scrap'
   }
 };
+

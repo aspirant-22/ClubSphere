@@ -3,7 +3,7 @@
  * @RESPONSIBILITY: Master architectural registry mapping every system file to its exact business purpose.
  * @DEPENDENCIES: System-wide modules across client and server tiers.
  * @MODIFICATION_HOTSPOT: Root file mapping table.
- * @AUTHOR: Garima Mittal, Principal Enterprise Solutions Architect
+ * @AUTHOR: Garima Mittal
  */
 
 # 🏛️ ClubSphere: Architectural Directory Registry
@@ -32,3 +32,4 @@
 | `server/src/middleware/errorHandler.js` | Standardized enterprise error transformer mapping errors to structured JSON responses. |
 | `server/src/middleware/auditLogger.js` | Enterprise audit trail logger appending actor and execution metrics to diagnostic buffers. |
 | `server/src/server.js` | Central Express application gateway with Helmet, CORS, Rate-Limiter, and HTTP server bootstrap. |
+
