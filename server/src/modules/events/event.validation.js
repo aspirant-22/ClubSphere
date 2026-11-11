@@ -37,3 +37,4 @@ export const DoorScannerCheckInSchema = z.object({
   ticketTrackingCode: z.string().min(5),
   gateScannerLocation: z.string().default('MAIN_ENTRANCE_DOOR')
 });
+

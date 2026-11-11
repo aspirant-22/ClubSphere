@@ -110,3 +110,4 @@ const eventSchema = new mongoose.Schema(
 );
 
 export const EventModel = mongoose.model('Event', eventSchema);
+

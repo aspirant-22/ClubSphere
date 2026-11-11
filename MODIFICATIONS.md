@@ -49,4 +49,12 @@
   - Built event ticketing service enforcing member discount checks, concurrency quota locks, double-entry revenue postings, and duplicate check-in prevention in `server/src/modules/events/event.service.js`.
   - Delivered controllers for tickets, rapid door QR scanning, and event reconciliation in `server/src/modules/events/event.controller.js`.
   - Mounted events router on `/api/v1/events` in `server/src/modules/events/event.routes.js`.
+- **Entry 008 - Merchandise POS & Double-Entry Stock Subdomain:**
+  - Implemented Product catalog schema with structured apparel size variant arrays in `server/src/modules/merchandise/product.model.js`.
+  - Implemented SalesOrder schema with `SO/2026/XXXX` sequence and line items in `server/src/modules/merchandise/salesOrder.model.js`.
+  - Built physical double-entry stock movement ledger in `server/src/core/stockLedger.js`.
+  - Authored Zod schemas for product SKU creation and sales order checkout in `server/src/modules/merchandise/merchandise.validation.js`.
+  - Built merchandise service handling inventory checks, atomic stock moves, and double-entry revenue journal postings in `server/src/modules/merchandise/merchandise.service.js`.
+  - Delivered controllers for apparel POS checkout, order tracking, and stock ledger in `server/src/modules/merchandise/merchandise.controller.js`.
+  - Mounted merchandise router on `/api/v1/merchandise` in `server/src/modules/merchandise/merchandise.routes.js`.
 
