@@ -132,3 +132,4 @@ export const handleListAllMemberships = async (incomingHttpRequest, outgoingHttp
     membershipsList: allMemberships
   });
 };
+

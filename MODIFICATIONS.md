@@ -42,4 +42,11 @@
   - Authored membership service handling table signups, QR badge creation, expiration dates, and automated double-entry ledger postings in `server/src/modules/memberships/membership.service.js`.
   - Delivered membership controllers for student card retrieval and gate scanning in `server/src/modules/memberships/membership.controller.js`.
   - Mounted RBAC-protected router on `/api/v1/memberships` in `server/src/modules/memberships/membership.routes.js`.
+- **Entry 007 - Events & Spring Gala Ticketing Subdomain:**
+  - Implemented Event schema with tier pricing and venue quotas in `server/src/modules/events/event.model.js`.
+  - Implemented Ticket schema with `TKT/2026/XXXX` tracking and check-in audit stamps in `server/src/modules/events/ticket.model.js`.
+  - Authored Zod validation schemas for ticket purchasing and door scanning in `server/src/modules/events/event.validation.js`.
+  - Built event ticketing service enforcing member discount checks, concurrency quota locks, double-entry revenue postings, and duplicate check-in prevention in `server/src/modules/events/event.service.js`.
+  - Delivered controllers for tickets, rapid door QR scanning, and event reconciliation in `server/src/modules/events/event.controller.js`.
+  - Mounted events router on `/api/v1/events` in `server/src/modules/events/event.routes.js`.
 

@@ -18,6 +18,7 @@ import dotenv from 'dotenv';
 import { connectToDatabase } from './config/databaseConnection.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { membershipRouter } from './modules/memberships/membership.routes.js';
+import { eventRouter } from './modules/events/event.routes.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ expressApplication.use('/api/', globalRateLimiter);
 // Module API Router Attachments
 expressApplication.use('/api/v1/auth', authRouter);
 expressApplication.use('/api/v1/memberships', membershipRouter);
+expressApplication.use('/api/v1/events', eventRouter);
 
 expressApplication.get('/api/health', (incomingHttpRequest, outgoingHttpResponse) => {
   return outgoingHttpResponse.status(200).json({

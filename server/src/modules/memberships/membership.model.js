@@ -97,3 +97,4 @@ const membershipSchema = new mongoose.Schema(
 );
 
 export const MembershipModel = mongoose.model('Membership', membershipSchema);
+

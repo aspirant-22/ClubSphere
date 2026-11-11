@@ -66,3 +66,4 @@ membershipRouter.post(
   validateRequestBody(MembershipQrVerifySchema),
   handleVerifyQrScan
 );
+

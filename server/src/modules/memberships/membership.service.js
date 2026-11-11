@@ -219,3 +219,4 @@ export const verifyMembershipBadgeToken = async (scannedQrPayload) => {
     membershipRecord
   };
 };
+

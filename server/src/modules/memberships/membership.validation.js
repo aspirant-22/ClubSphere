@@ -47,3 +47,4 @@ export const RecordDuesPaymentSchema = z.object({
 export const MembershipQrVerifySchema = z.object({
   qrTokenPayload: z.string().min(10, 'Invalid QR payload string')
 });
+
