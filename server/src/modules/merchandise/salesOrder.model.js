@@ -118,3 +118,4 @@ const salesOrderSchema = new mongoose.Schema(
 );
 
 export const SalesOrderModel = mongoose.model('SalesOrder', salesOrderSchema);
+

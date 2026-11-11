@@ -49,3 +49,4 @@ export const SalesOrderCheckoutSchema = z.object({
 export const OrderFulfillmentTransitionSchema = z.object({
   targetLifecycleState: z.enum(['WAITING', 'READY', 'DONE', 'CANCELLED'])
 });
+

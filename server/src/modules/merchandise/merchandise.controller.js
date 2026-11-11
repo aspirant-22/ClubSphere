@@ -105,3 +105,4 @@ export const handleListStockMovementJournal = async (incomingHttpRequest, outgoi
     movementJournalEntries
   });
 };
+

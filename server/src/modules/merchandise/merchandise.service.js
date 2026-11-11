@@ -157,3 +157,4 @@ export const fulfillSalesOrder = async (orderId, targetLifecycleState, staffUser
   console.log(`[Merchandise Service]: Order ${targetOrder.salesOrderSequenceCode} moved to state ${targetLifecycleState}`);
   return targetOrder;
 };
+

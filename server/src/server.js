@@ -20,6 +20,7 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { membershipRouter } from './modules/memberships/membership.routes.js';
 import { eventRouter } from './modules/events/event.routes.js';
 import { merchandiseRouter } from './modules/merchandise/merchandise.routes.js';
+import { activityRouter } from './modules/activities/activity.routes.js';
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ expressApplication.use('/api/v1/auth', authRouter);
 expressApplication.use('/api/v1/memberships', membershipRouter);
 expressApplication.use('/api/v1/events', eventRouter);
 expressApplication.use('/api/v1/merchandise', merchandiseRouter);
+expressApplication.use('/api/v1/activities', activityRouter);
 
 expressApplication.get('/api/health', (incomingHttpRequest, outgoingHttpResponse) => {
   return outgoingHttpResponse.status(200).json({

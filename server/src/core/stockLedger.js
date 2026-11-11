@@ -90,3 +90,4 @@ export const recordPhysicalStockTransfer = async ({
   console.log(`[Stock Ledger]: Transferred ${quantityMoved}x ${skuIdentifier} (${sizeVariant}) from ${sourceLocationNode} -> ${destinationLocationNode}`);
   return stockTransfer;
 };
+

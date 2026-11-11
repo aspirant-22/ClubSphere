@@ -57,4 +57,10 @@
   - Built merchandise service handling inventory checks, atomic stock moves, and double-entry revenue journal postings in `server/src/modules/merchandise/merchandise.service.js`.
   - Delivered controllers for apparel POS checkout, order tracking, and stock ledger in `server/src/modules/merchandise/merchandise.controller.js`.
   - Mounted merchandise router on `/api/v1/merchandise` in `server/src/modules/merchandise/merchandise.routes.js`.
+- **Entry 009 - Volunteer Task Kanban Subdomain:**
+  - Implemented ActivityTask schema with Kanban stage arrays (`BACKLOG`, `TO_DO`, `IN_PROGRESS`, `REVIEW`, `COMPLETED`), subtasks, and budget caps in `server/src/modules/activities/activity.model.js`.
+  - Authored Zod validation schemas for task creation, stage movements, and volunteer assignments in `server/src/modules/activities/activity.validation.js`.
+  - Built activity service for Kanban board aggregations, completion percentages, and drag-and-drop state transitions in `server/src/modules/activities/activity.service.js`.
+  - Delivered controllers for Kanban board views, volunteer assignments, and task management in `server/src/modules/activities/activity.controller.js`.
+  - Mounted activity router on `/api/v1/activities` in `server/src/modules/activities/activity.routes.js`.
 
