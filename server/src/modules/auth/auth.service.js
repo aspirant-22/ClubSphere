@@ -84,3 +84,4 @@ export const authenticateUserCredentials = async (loginCredentials) => {
   const signedSessionJwt = generateSignedSessionToken(matchedUserRecord);
   return { authenticatedUser: matchedUserRecord, signedSessionJwt };
 };
+

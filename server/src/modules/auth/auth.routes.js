@@ -42,3 +42,4 @@ authRouter.get(
   authenticateSessionToken,
   handleFetchAuthenticatedUserProfile
 );
+

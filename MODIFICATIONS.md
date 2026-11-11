@@ -36,4 +36,10 @@
   - Created authentication service for JWT issuance and credentials check in `server/src/modules/auth/auth.service.js`.
   - Created authentication controllers with HTTP-Only cookie handling in `server/src/modules/auth/auth.controller.js`.
   - Created authentication router in `server/src/modules/auth/auth.routes.js`.
+- **Entry 006 - Membership & CRM Subdomain:**
+  - Implemented Membership Mongoose schema with `MEM/2026/XXXX` tracking, tier structures, and QR payloads in `server/src/modules/memberships/membership.model.js`.
+  - Built Zod validation schemas for applications, table signups, dues recording, and QR validation in `server/src/modules/memberships/membership.validation.js`.
+  - Authored membership service handling table signups, QR badge creation, expiration dates, and automated double-entry ledger postings in `server/src/modules/memberships/membership.service.js`.
+  - Delivered membership controllers for student card retrieval and gate scanning in `server/src/modules/memberships/membership.controller.js`.
+  - Mounted RBAC-protected router on `/api/v1/memberships` in `server/src/modules/memberships/membership.routes.js`.
 

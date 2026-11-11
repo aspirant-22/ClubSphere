@@ -27,3 +27,4 @@ export const UserLoginSchema = z.object({
   emailAddress: z.string().email('Invalid student email address format'),
   passwordCredential: z.string().min(1, 'Password credential is required')
 });
+

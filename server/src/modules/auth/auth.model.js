@@ -76,3 +76,4 @@ userSchema.methods.verifyPasswordMatch = async function (candidatePasswordString
 };
 
 export const UserModel = mongoose.model('User', userSchema);
+
