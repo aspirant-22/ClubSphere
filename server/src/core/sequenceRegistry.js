@@ -62,3 +62,4 @@ export const generateNextSequenceCode = async (sequencePrefixKey) => {
   console.log(`[Sequence Registry]: Generated corporate identifier: ${generatedCorporateCode}`);
   return generatedCorporateCode;
 };
+

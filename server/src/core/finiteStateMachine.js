@@ -71,3 +71,4 @@ export const validateLifecycleStateTransition = (
   console.log(`[FSM Accepted]: State transitioned from ${normalizedCurrentState} to ${normalizedDestinationState}`);
   return true;
 };
+

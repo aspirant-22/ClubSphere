@@ -29,4 +29,11 @@
   - Implemented strict Zod schema parsing interceptor in `server/src/middleware/schemaValidator.js`.
   - Implemented HTTP-Only cookie JWT verification in `server/src/middleware/authenticationGate.js`.
   - Implemented 4-tier Role-Based Access Control gate in `server/src/middleware/rbacAuthorization.js`.
+- **Entry 005 - Express Gateway & Authentication Subdomain:**
+  - Initialized central Express gateway with Helmet, CORS whitelist, rate-limiting, and Socket.IO in `server/src/server.js`.
+  - Created User schema with bcrypt password hashing in `server/src/modules/auth/auth.model.js`.
+  - Created Zod validation schemas for registration/login in `server/src/modules/auth/auth.validation.js`.
+  - Created authentication service for JWT issuance and credentials check in `server/src/modules/auth/auth.service.js`.
+  - Created authentication controllers with HTTP-Only cookie handling in `server/src/modules/auth/auth.controller.js`.
+  - Created authentication router in `server/src/modules/auth/auth.routes.js`.
 
