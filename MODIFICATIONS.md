@@ -105,4 +105,7 @@
   - Implemented MerchandiseCatalogView with interactive size variant selector (`XS` to `2XL`), real-time stock counts, and member discounts in `client/src/modules/merchandise/MerchandiseCatalogView.jsx`.
   - Implemented SalesOrderCheckoutModal with pickup/delivery selection and automated double-entry stock transfer in `client/src/modules/merchandise/SalesOrderCheckoutModal.jsx`.
   - Implemented StockLedgerView audit table displaying immutable stock moves between storage rooms and customers in `client/src/modules/merchandise/StockLedgerView.jsx`.
+- **Entry 018 - Volunteer Task Kanban & Activity Views:**
+  - Implemented VolunteerKanbanView 5-column project pipeline (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with category pills, live budget utilization progress, and 1-click stage advancement in `client/src/modules/activities/VolunteerKanbanView.jsx`.
+  - Implemented TaskCreationModal for creating fundraiser tasks with volunteer assignment and budget caps in `client/src/modules/activities/TaskCreationModal.jsx`.
 
