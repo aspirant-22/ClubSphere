@@ -92,4 +92,9 @@
   - Built CommandPaletteModal for keyboard-driven quick jumping in `client/src/components/common/CommandPaletteModal.jsx`.
   - Built Navbar top status bar with role badge and logout in `client/src/components/common/Navbar.jsx`.
   - Built master EnterpriseAppLayout multi-column workspace with slate app rail and viewport in `client/src/layouts/EnterpriseAppLayout.jsx`.
+- **Entry 015 - Authentication & Membership Views:**
+  - Implemented LoginView with 1-click Demo Persona Switcher (President Garima Mittal, Treasurer, Operations, Member) in `client/src/modules/auth/LoginView.jsx`.
+  - Implemented MemberCardModal rendering digital student ID card and scannable QR badge in `client/src/modules/memberships/MemberCardModal.jsx`.
+  - Implemented TableSignupModal onboarding students at campus tables with cash collection toggle in `client/src/modules/memberships/TableSignupModal.jsx`.
+  - Implemented dense multi-column MembershipListView with tier/dues filters and QR inspection in `client/src/modules/memberships/MembershipListView.jsx`.
 

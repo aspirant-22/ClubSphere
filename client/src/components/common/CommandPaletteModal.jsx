@@ -78,3 +78,4 @@ export const CommandPaletteModal = () => {
     </div>
   );
 };
+
