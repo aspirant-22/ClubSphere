@@ -203,3 +203,4 @@ export const TableSignupModal = ({ isOpen, onClose, onSignupSuccess }) => {
     </div>
   );
 };
+

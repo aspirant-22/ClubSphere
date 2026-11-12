@@ -97,4 +97,8 @@
   - Implemented MemberCardModal rendering digital student ID card and scannable QR badge in `client/src/modules/memberships/MemberCardModal.jsx`.
   - Implemented TableSignupModal onboarding students at campus tables with cash collection toggle in `client/src/modules/memberships/TableSignupModal.jsx`.
   - Implemented dense multi-column MembershipListView with tier/dues filters and QR inspection in `client/src/modules/memberships/MembershipListView.jsx`.
+- **Entry 016 - Events, Spring Gala Ticketing & Door Scanner Views:**
+  - Implemented EventListView with live capacity badges and multi-tier pricing matrices in `client/src/modules/events/EventListView.jsx`.
+  - Implemented TicketPurchaseModal verifying member discounts and reserving seat quotas in `client/src/modules/events/TicketPurchaseModal.jsx`.
+  - Implemented DoorScannerView rapid gate admission terminal with instant QR verification and duplicate scan warnings in `client/src/modules/events/DoorScannerView.jsx`.
 
