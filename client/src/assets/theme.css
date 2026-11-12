@@ -1,0 +1,66 @@
+/**
+ * @FILE: theme.css
+ * @RESPONSIBILITY: Centralized Tailwind @apply utility directives for primary buttons, data tables, and workflow badges.
+ * @DEPENDENCIES: tailwindcss.
+ * @MODIFICATION_HOTSPOT: .btn-primary-action, .btn-secondary-action, and .badge-workflow rules.
+ * @AUTHOR: Garima Mittal
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* High-impact Odoo Action Buttons */
+  .btn-primary-action {
+    @apply inline-flex items-center justify-center px-3.5 py-1.5 text-xs font-semibold text-white bg-odoo-primary hover:bg-odoo-primaryHover rounded shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-odoo-primary disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary-action {
+    @apply inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-400 disabled:opacity-50;
+  }
+
+  .btn-accent-action {
+    @apply inline-flex items-center justify-center px-3.5 py-1.5 text-xs font-semibold text-white bg-odoo-accent hover:bg-odoo-accentHover rounded shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-odoo-accent disabled:opacity-50;
+  }
+
+  /* Enterprise Control Panel Header */
+  .control-panel-container {
+    @apply sticky top-0 z-20 flex flex-wrap items-center justify-between px-4 py-2.5 bg-white border-b border-odoo-border shadow-xs;
+  }
+
+  /* Dense Odoo Data Cards */
+  .odoo-card {
+    @apply bg-white border border-odoo-border rounded-md shadow-xs p-4 transition-all;
+  }
+
+  /* Finite State Machine Badges */
+  .badge-state-draft {
+    @apply px-2 py-0.5 text-2xs font-bold uppercase rounded bg-slate-100 text-slate-600 border border-slate-200;
+  }
+
+  .badge-state-waiting {
+    @apply px-2 py-0.5 text-2xs font-bold uppercase rounded bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  .badge-state-ready {
+    @apply px-2 py-0.5 text-2xs font-bold uppercase rounded bg-blue-50 text-blue-700 border border-blue-200;
+  }
+
+  .badge-state-done {
+    @apply px-2 py-0.5 text-2xs font-bold uppercase rounded bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .badge-state-cancelled {
+    @apply px-2 py-0.5 text-2xs font-bold uppercase rounded bg-rose-50 text-rose-700 border border-rose-200;
+  }
+
+  /* Dense Table Rows */
+  .table-dense-header {
+    @apply px-3 py-2 text-left text-2xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-odoo-border;
+  }
+
+  .table-dense-cell {
+    @apply px-3 py-2 text-xs text-slate-800 border-b border-slate-100 whitespace-nowrap;
+  }
+}
