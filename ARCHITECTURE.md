@@ -11,6 +11,7 @@
 | File Path | Functional Responsibility |
 | :--- | :--- |
 | `ARCHITECTURE.md` | Single-sentence structural log mapping exactly what each file handles across the entire codebase. |
+| `CONTEXT.md` | Ultra-compressed single-source architectural and state quick-reference master index (<150 lines). |
 | `ROUTES.md` | Comprehensive ledger tracking API trigger pathways, controllers, and database impacts. |
 | `STATE.md` | Inventory ledger mapping React context states, component hooks, and global data pipelines. |
 | `ENVIRONMENT.md` | Environment configuration dictionary, port assignments, and local runbook specifications. |
