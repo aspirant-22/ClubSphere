@@ -22,6 +22,8 @@ import { eventRouter } from './modules/events/event.routes.js';
 import { merchandiseRouter } from './modules/merchandise/merchandise.routes.js';
 import { activityRouter } from './modules/activities/activity.routes.js';
 import { accountingRouter } from './modules/accounting/accounting.routes.js';
+import { broadcastRouter } from './modules/broadcasts/broadcast.routes.js';
+import { diagnosticRouter } from './modules/diagnostics/diagnostic.routes.js';
 
 dotenv.config();
 
@@ -70,6 +72,8 @@ expressApplication.use('/api/v1/events', eventRouter);
 expressApplication.use('/api/v1/merchandise', merchandiseRouter);
 expressApplication.use('/api/v1/activities', activityRouter);
 expressApplication.use('/api/v1/accounting', accountingRouter);
+expressApplication.use('/api/v1/broadcasts', broadcastRouter);
+expressApplication.use('/api/v1/diagnostics', diagnosticRouter);
 
 expressApplication.get('/api/health', (incomingHttpRequest, outgoingHttpResponse) => {
   return outgoingHttpResponse.status(200).json({

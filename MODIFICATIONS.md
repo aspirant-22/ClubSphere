@@ -69,4 +69,11 @@
   - Authored accounting service for Treasurer review, automated double-entry disbursement journal postings, general ledger aggregations, and Semester P&L generation in `server/src/modules/accounting/accounting.service.js`.
   - Delivered controllers for claims, sign-offs, general ledger audits, and semester close-out reports in `server/src/modules/accounting/accounting.controller.js`.
   - Mounted accounting router on `/api/v1/accounting` in `server/src/modules/accounting/accounting.routes.js`.
+- **Entry 011 - Broadcast Communications & Live Telemetry Subdomain:**
+  - Implemented Broadcast schema with `ANN/2026/XXXX` tracking, audience tiers (`ALL_MEMBERS`, `EXECUTIVES_ONLY`, `PUBLIC`), and read-receipt ledgers in `server/src/modules/broadcasts/broadcast.model.js`.
+  - Built Zod validation schemas for broadcast publication and read-receipt confirmations in `server/src/modules/broadcasts/broadcast.validation.js`.
+  - Authored broadcast service with Socket.IO real-time event broadcasting (`BROADCAST_PUBLISHED`) and read-receipt tracking in `server/src/modules/broadcasts/broadcast.service.js`.
+  - Delivered controllers for audience-filtered feeds, announcements publication, and read receipts in `server/src/modules/broadcasts/broadcast.controller.js`.
+  - Mounted broadcast router on `/api/v1/broadcasts` in `server/src/modules/broadcasts/broadcast.routes.js`.
+  - Built live system telemetry, database health, and in-memory console log ring buffer streaming on `/api/v1/diagnostics` in `server/src/modules/diagnostics/diagnostic.routes.js`.
 

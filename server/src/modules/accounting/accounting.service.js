@@ -132,3 +132,4 @@ export const computeSemesterFinancialProfitAndLoss = async () => {
     totalJournalEntriesCount: allJournalEntries.length
   };
 };
+
