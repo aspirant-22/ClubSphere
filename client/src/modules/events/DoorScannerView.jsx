@@ -157,3 +157,4 @@ export const DoorScannerView = () => {
     </div>
   );
 };
+

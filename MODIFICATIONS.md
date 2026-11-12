@@ -101,4 +101,8 @@
   - Implemented EventListView with live capacity badges and multi-tier pricing matrices in `client/src/modules/events/EventListView.jsx`.
   - Implemented TicketPurchaseModal verifying member discounts and reserving seat quotas in `client/src/modules/events/TicketPurchaseModal.jsx`.
   - Implemented DoorScannerView rapid gate admission terminal with instant QR verification and duplicate scan warnings in `client/src/modules/events/DoorScannerView.jsx`.
+- **Entry 017 - Merchandise POS & Double-Entry Stock Views:**
+  - Implemented MerchandiseCatalogView with interactive size variant selector (`XS` to `2XL`), real-time stock counts, and member discounts in `client/src/modules/merchandise/MerchandiseCatalogView.jsx`.
+  - Implemented SalesOrderCheckoutModal with pickup/delivery selection and automated double-entry stock transfer in `client/src/modules/merchandise/SalesOrderCheckoutModal.jsx`.
+  - Implemented StockLedgerView audit table displaying immutable stock moves between storage rooms and customers in `client/src/modules/merchandise/StockLedgerView.jsx`.
 
