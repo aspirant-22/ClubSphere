@@ -29,3 +29,4 @@ export const BroadcastPublicationSchema = z.object({
 export const ReadReceiptAckSchema = z.object({
   acknowledgedTimestamp: z.string().datetime().optional()
 });
+

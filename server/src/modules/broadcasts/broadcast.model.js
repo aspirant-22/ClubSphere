@@ -89,3 +89,4 @@ const broadcastSchema = new mongoose.Schema(
 );
 
 export const BroadcastModel = mongoose.model('Broadcast', broadcastSchema);
+

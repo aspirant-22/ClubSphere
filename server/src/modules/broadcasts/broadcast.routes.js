@@ -46,3 +46,4 @@ broadcastRouter.post(
   validateRequestBody(ReadReceiptAckSchema),
   handleAcknowledgeReadReceipt
 );
+

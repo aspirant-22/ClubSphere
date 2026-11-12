@@ -65,3 +65,4 @@ export const handleAcknowledgeReadReceipt = async (incomingHttpRequest, outgoing
     });
   }
 };
+
