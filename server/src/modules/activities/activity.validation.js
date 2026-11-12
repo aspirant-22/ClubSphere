@@ -44,3 +44,4 @@ export const KanbanStageTransitionSchema = z.object({
 export const AssignVolunteersSchema = z.object({
   volunteerUserIds: z.array(z.string()).min(1, 'At least one volunteer required')
 });
+

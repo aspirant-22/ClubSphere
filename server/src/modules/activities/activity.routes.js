@@ -51,3 +51,4 @@ activityRouter.put(
   validateRequestBody(AssignVolunteersSchema),
   handleAssignVolunteers
 );
+

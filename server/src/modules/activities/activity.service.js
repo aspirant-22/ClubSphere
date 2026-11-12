@@ -98,3 +98,4 @@ export const fetchProjectKanbanBoardData = async (projectNameQuery) => {
     kanbanColumns: kanbanColumnsMap
   };
 };
+

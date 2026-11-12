@@ -63,4 +63,10 @@
   - Built activity service for Kanban board aggregations, completion percentages, and drag-and-drop state transitions in `server/src/modules/activities/activity.service.js`.
   - Delivered controllers for Kanban board views, volunteer assignments, and task management in `server/src/modules/activities/activity.controller.js`.
   - Mounted activity router on `/api/v1/activities` in `server/src/modules/activities/activity.routes.js`.
+- **Entry 010 - Accounting, Reimbursements & Treasury Subdomain:**
+  - Implemented Reimbursement schema with `EXP/2026/XXXX` tracking, receipt attachment URLs, and audit statuses in `server/src/modules/accounting/reimbursement.model.js`.
+  - Built Zod validation schemas for claim submissions and Treasurer approval actions in `server/src/modules/accounting/accounting.validation.js`.
+  - Authored accounting service for Treasurer review, automated double-entry disbursement journal postings, general ledger aggregations, and Semester P&L generation in `server/src/modules/accounting/accounting.service.js`.
+  - Delivered controllers for claims, sign-offs, general ledger audits, and semester close-out reports in `server/src/modules/accounting/accounting.controller.js`.
+  - Mounted accounting router on `/api/v1/accounting` in `server/src/modules/accounting/accounting.routes.js`.
 
