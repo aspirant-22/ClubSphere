@@ -84,3 +84,4 @@ export const useAuthentication = () => {
   }
   return authContext;
 };
+
