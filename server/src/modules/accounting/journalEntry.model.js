@@ -7,3 +7,4 @@
  */
 
 export { JournalEntryModel } from '../../core/doubleEntryLedger.js';
+

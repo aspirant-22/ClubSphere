@@ -23,3 +23,4 @@ export const globalErrorHandler = (errorInstance, incomingRequest, outgoingRespo
     serverTimestamp: new Date().toISOString()
   });
 };
+

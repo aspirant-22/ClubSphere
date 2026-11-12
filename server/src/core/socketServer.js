@@ -49,3 +49,4 @@ export const broadcastDomainEvent = (eventName, eventPayload, targetRoom = null)
     activeSocketServer.emit(eventName, eventPayload);
   }
 };
+

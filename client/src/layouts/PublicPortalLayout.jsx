@@ -48,3 +48,4 @@ export const PublicPortalLayout = () => {
 };
 
 export default PublicPortalLayout;
+

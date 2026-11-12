@@ -26,3 +26,4 @@ export const auditLogger = (incomingRequest, outgoingResponse, nextMiddleware) =
 
   return nextMiddleware();
 };
+
