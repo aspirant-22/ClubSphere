@@ -108,4 +108,8 @@
 - **Entry 018 - Volunteer Task Kanban & Activity Views:**
   - Implemented VolunteerKanbanView 5-column project pipeline (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with category pills, live budget utilization progress, and 1-click stage advancement in `client/src/modules/activities/VolunteerKanbanView.jsx`.
   - Implemented TaskCreationModal for creating fundraiser tasks with volunteer assignment and budget caps in `client/src/modules/activities/TaskCreationModal.jsx`.
+- **Entry 019 - Accounting, Expense Reimbursements & Financial Reports Views:**
+  - Implemented GeneralLedgerView verifying double-entry mathematical parity ($Debits = Credits$) across all campus operations in `client/src/modules/accounting/GeneralLedgerView.jsx`.
+  - Implemented ReimbursementsListView with cloud receipt preview modal, claim submission form, and 1-click Treasurer sign-off in `client/src/modules/accounting/ReimbursementsListView.jsx`.
+  - Implemented FinancialReportView end-of-semester close-out P&L statement breaking down dues, gala tickets, and apparel proceeds against operations expenses in `client/src/modules/accounting/FinancialReportView.jsx`.
 
