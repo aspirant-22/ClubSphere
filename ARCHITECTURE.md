@@ -58,6 +58,7 @@
 | `server/src/modules/activities/activity.service.js` | Kanban business logic: stage transitions, budget utilization tracking. |
 | `server/src/modules/activities/activity.controller.js` | HTTP controllers for Kanban CRUD and stage advancement operations. |
 | `server/src/modules/activities/activity.routes.js` | Express router for activities/Kanban endpoints. |
+| `server/src/modules/accounting/journalEntry.model.js` | Re-export of Mongoose JournalEntryModel from doubleEntryLedger for modular schema imports. |
 | `server/src/modules/accounting/accounting.model.js` | Mongoose schemas for general ledger journal entries and expense reimbursement claims. |
 | `server/src/modules/accounting/accounting.validation.js` | Zod schemas for ledger posting and reimbursement submission payloads. |
 | `server/src/modules/accounting/accounting.service.js` | Treasury business logic: double-entry journal posting, debit/credit parity verification, claim sign-off. |
@@ -68,8 +69,10 @@
 | `server/src/modules/broadcasts/broadcast.service.js` | Broadcast logic: message persistence and real-time Socket.IO emission to audience tiers. |
 | `server/src/modules/broadcasts/broadcast.controller.js` | HTTP controllers for broadcast CRUD and read-receipt endpoints. |
 | `server/src/modules/broadcasts/broadcast.routes.js` | Express router for broadcasts domain endpoints. |
+| `server/src/modules/diagnostics/diagnostic.controller.js` | HTTP controllers for system telemetry, memory usage, and ring-buffer log streaming. |
 | `server/src/modules/diagnostics/diagnostic.routes.js` | Express router exposing /health, /logs, and /ping system telemetry endpoints. |
 | `server/src/seed/seedDatabase.js` | Standalone idempotent seeder populating 200+ realistic historical records across all ClubSphere domains. |
+| `server/.env.example` | Template environment configuration specifying default ports, MongoDB connection string, and session secrets. |
 | `client/package.json` | React 19 frontend manifest: Vite, Tailwind, Axios, Socket.IO-client, React Router DOM, Lucide React. |
 | `client/vite.config.js` | Vite dev server configured with /api and /socket.io proxy to localhost:5000 backend. |
 | `client/tailwind.config.js` | Custom Tailwind palette: Odoo plum primary (#714B67), teal accent (#00A09D), slate surfaces. |
@@ -79,16 +82,20 @@
 | `client/src/App.jsx` | Root component composing BrowserRouter → AuthenticationProvider → SystemProcessingProvider → NavigationPaletteProvider → AppRouter. |
 | `client/src/routes/AppRouter.jsx` | Complete RBAC-protected routing matrix binding all ClubSphere subdomains via ProtectedRoute guards. |
 | `client/src/assets/theme.css` | Centralized Tailwind @apply utility directives for enterprise cards, status badges, and action buttons. |
-| `client/src/api/apiNetworkClient.js` | Axios singleton with /api/v1 base URL, credential cookies, and global 401 redirect interceptor. |
+| `client/src/services/apiNetworkClient.js` | Axios singleton with /api/v1 base URL, credential cookies, and global 401 redirect interceptor. |
+| `client/src/services/socketClient.js` | Socket.IO client singleton factory and event connection manager. |
 | `client/src/context/AuthenticationContext.jsx` | Session hydration via /me, login/logout handlers, and 4-tier role helpers. |
 | `client/src/context/SystemProcessingContext.jsx` | Global execution overlay preventing double-click race conditions during async operations. |
+| `client/src/context/SocketNotificationContext.jsx` | React Context managing real-time Socket.IO broadcasts and alert subscriptions. |
 | `client/src/context/NavigationPaletteContext.jsx` | Ctrl+K command palette context managing query state and keyboard shortcut interception. |
 | `client/src/components/common/ControlPanelHeader.jsx` | Pinned header bar with module breadcrumbs left and context action triggers right. |
 | `client/src/components/common/ProgressWorkflowRibbon.jsx` | Odoo top-right state pipeline indicator: Draft → Waiting → Ready → Done. |
+| `client/src/components/common/ProcessingOverlay.jsx` | Unclickable backdrop spinner blocking rapid double-clicks and race conditions during async operations. |
 | `client/src/components/common/OfflineAlertBanner.jsx` | Dynamic top alert banner triggered on server timeout or network latency spikes. |
 | `client/src/components/common/CommandPaletteModal.jsx` | Ctrl+K modal for instant keyboard-driven navigation across all club subdomains. |
 | `client/src/components/common/Navbar.jsx` | Top workspace status bar: active persona badge, quick shortcuts, and logout trigger. |
-| `client/src/components/layout/EnterpriseAppLayout.jsx` | Multi-column master layout with slate sidebar app-rail and scrollable main viewport. |
+| `client/src/layouts/EnterpriseAppLayout.jsx` | Multi-column master layout with slate sidebar app-rail and scrollable main viewport. |
+| `client/src/layouts/PublicPortalLayout.jsx` | Clean, distraction-free layout for unauthenticated and student public portal routes. |
 | `client/src/modules/auth/LoginView.jsx` | Enterprise sign-in with 1-click Demo Persona Switcher for President, Treasurer, Operations, and Member. |
 | `client/src/modules/memberships/MembershipListView.jsx` | Dense Odoo member directory with tier badges, dues filters, and QR inspection triggers. |
 | `client/src/modules/memberships/MemberCardModal.jsx` | Digital student ID card displaying MEM/2026/XXXX code and scannable QR badge. |

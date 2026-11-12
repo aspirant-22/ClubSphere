@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Activity, Database, Cpu, RefreshCw, Terminal } from 'lucide-react';
-import apiNetworkClient from '../../api/apiNetworkClient.js';
+import apiNetworkClient from '../../services/apiNetworkClient.js';
 
 /* ─── Constants ─────────────────────────────────────────────── */
 const POLL_INTERVAL_MS  = 3000;

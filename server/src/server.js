@@ -12,9 +12,11 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import { Server as SocketIoServer } from 'socket.io';
 import dotenv from 'dotenv';
 
+import { initializeSocketServer } from './core/socketServer.js';
+import { auditLogger } from './middleware/auditLogger.js';
+import { globalErrorHandler } from './middleware/errorHandler.js';
 import { connectToDatabase } from './config/databaseConnection.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { membershipRouter } from './modules/memberships/membership.routes.js';
@@ -32,13 +34,7 @@ const primaryHttpServer = http.createServer(expressApplication);
 
 const allowedClientOrigin = process.env.CLIENT_ORIGIN_URL || 'http://localhost:5173';
 
-const socketIoServer = new SocketIoServer(primaryHttpServer, {
-  cors: {
-    origin: allowedClientOrigin,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
-});
+const socketIoServer = initializeSocketServer(primaryHttpServer, [allowedClientOrigin]);
 
 expressApplication.use(helmet());
 expressApplication.use(
@@ -51,6 +47,7 @@ expressApplication.use(
 expressApplication.use(cookieParser());
 expressApplication.use(express.json({ limit: '2mb' }));
 expressApplication.use(express.urlencoded({ extended: true, limit: '2mb' }));
+expressApplication.use(auditLogger);
 
 const globalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -83,12 +80,7 @@ expressApplication.get('/api/health', (incomingHttpRequest, outgoingHttpResponse
   });
 });
 
-socketIoServer.on('connection', (connectedClientSocket) => {
-  console.log(`[Socket Gateway]: Real-time client connected: ${connectedClientSocket.id}`);
-  connectedClientSocket.on('disconnect', () => {
-    console.log(`[Socket Gateway]: Client disconnected: ${connectedClientSocket.id}`);
-  });
-});
+expressApplication.use(globalErrorHandler);
 
 export { expressApplication, primaryHttpServer, socketIoServer };
 

@@ -48,3 +48,5 @@ apiNetworkClient.interceptors.response.use(
   }
 );
 
+export default apiNetworkClient;
+

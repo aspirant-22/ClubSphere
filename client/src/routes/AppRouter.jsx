@@ -11,7 +11,8 @@ import { useAuthentication } from '../context/AuthenticationContext.jsx';
 
 /* ─── Lazy page imports ─────────────────────────────────────── */
 import LoginView                from '../modules/auth/LoginView.jsx';
-import EnterpriseAppLayout      from '../components/layout/EnterpriseAppLayout.jsx';
+import EnterpriseAppLayout      from '../layouts/EnterpriseAppLayout.jsx';
+import PublicPortalLayout        from '../layouts/PublicPortalLayout.jsx';
 
 import MembershipListView       from '../modules/memberships/MembershipListView.jsx';
 
@@ -67,7 +68,9 @@ export default function AppRouter() {
     <Routes>
 
       {/* Public */}
-      <Route path="/login" element={<LoginView />} />
+      <Route element={<PublicPortalLayout />}>
+        <Route path="/login" element={<LoginView />} />
+      </Route>
 
       {/* Root redirect */}
       <Route path="/" element={<RootRedirect />} />

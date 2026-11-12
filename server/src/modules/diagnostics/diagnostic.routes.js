@@ -11,6 +11,7 @@ import mongoose from 'mongoose';
 import { authenticateSessionToken } from '../../middleware/authenticationGate.js';
 import { authorizeRoleTiers, ERP_USER_ROLES } from '../../middleware/rbacAuthorization.js';
 import { ERP_SYSTEM_PARAMETERS } from '../../config/erpConfig.js';
+import { fetchSystemHealthMetrics } from './diagnostic.controller.js';
 
 export const diagnosticRouter = express.Router();
 
