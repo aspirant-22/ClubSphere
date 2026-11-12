@@ -78,7 +78,10 @@ export const authenticateUserCredentials = async (loginCredentials) => {
   }
 
   matchedUserRecord.lastLoginTimestamp = new Date();
-  await matchedUserRecord.save();
+  await UserModel.updateOne(
+    { _id: matchedUserRecord._id },
+    { $set: { lastLoginTimestamp: new Date() } }
+  );
 
   console.log(`[Auth Service]: Authentication verified for ${matchedUserRecord.emailAddress}`);
   const signedSessionJwt = generateSignedSessionToken(matchedUserRecord);

@@ -53,13 +53,13 @@ const clearExistingDatabaseCollections = async () => {
 
 const seedUserAccounts = async () => {
   console.log('[Seed Engine]: Creating core user accounts...');
-  const defaultPasswordHash = await bcrypt.hash('SkylineClub2026!', 10);
+  const plainPassword = 'SkylineClub2026!';
 
   const adminUser = await UserModel.create({
     fullName: 'Garima Mittal',
     studentIdentificationNumber: 'SKY-ADM-001',
     emailAddress: 'president@skyline.edu',
-    passwordCredentialHash: defaultPasswordHash,
+    passwordCredentialHash: plainPassword,
     userRoleTier: ERP_USER_ROLES.ADMIN,
     phoneNumber: '+1-555-010-0001'
   });
@@ -68,7 +68,7 @@ const seedUserAccounts = async () => {
     fullName: 'Alex Vance',
     studentIdentificationNumber: 'SKY-ADM-002',
     emailAddress: 'treasurer@skyline.edu',
-    passwordCredentialHash: defaultPasswordHash,
+    passwordCredentialHash: plainPassword,
     userRoleTier: ERP_USER_ROLES.ADMIN,
     phoneNumber: '+1-555-010-0002'
   });
@@ -77,7 +77,7 @@ const seedUserAccounts = async () => {
     fullName: 'Samantha Reed',
     studentIdentificationNumber: 'SKY-OPS-010',
     emailAddress: 'operations@skyline.edu',
-    passwordCredentialHash: defaultPasswordHash,
+    passwordCredentialHash: plainPassword,
     userRoleTier: ERP_USER_ROLES.OPERATIONS,
     phoneNumber: '+1-555-010-0010'
   });
@@ -89,7 +89,7 @@ const seedUserAccounts = async () => {
       fullName: `Student Member ${i}`,
       studentIdentificationNumber: `SKY-STU-${paddedId}`,
       emailAddress: `member${i}@skyline.edu`,
-      passwordCredentialHash: defaultPasswordHash,
+      passwordCredentialHash: plainPassword,
       userRoleTier: ERP_USER_ROLES.CUSTOMER,
       phoneNumber: `+1-555-100-${paddedId}`
     });
@@ -572,6 +572,28 @@ export const runMasterDatabaseSeeding = async () => {
     const { navyHoodie, crewneckTee, salesOrders, stockMoves } = await seedMerchandiseAndStock(adminUser, createdStudents);
     const { tasks } = await seedVolunteerKanbanTasks(adminUser, operationsLead, createdStudents);
     const { reimbursements, seededBroadcasts } = await seedReimbursementsAndBroadcasts(adminUser, treasurerUser, createdStudents);
+
+    // Initialize sequence registry counters to ensure new records start after seeded records
+    const sequenceInitRecords = [
+      { sequencePrefixKey: 'MEM', currentSequenceNumber: memberships.length },
+      { sequencePrefixKey: 'JRN', currentSequenceNumber: journalEntries.length },
+      { sequencePrefixKey: 'EVT', currentSequenceNumber: 1 },
+      { sequencePrefixKey: 'TKT', currentSequenceNumber: tickets.length },
+      { sequencePrefixKey: 'SO', currentSequenceNumber: salesOrders.length },
+      { sequencePrefixKey: 'STK', currentSequenceNumber: stockMoves.length },
+      { sequencePrefixKey: 'ACT', currentSequenceNumber: tasks.length },
+      { sequencePrefixKey: 'EXP', currentSequenceNumber: reimbursements.length },
+      { sequencePrefixKey: 'ANN', currentSequenceNumber: seededBroadcasts.length }
+    ];
+
+    for (const seq of sequenceInitRecords) {
+      await SequenceRegistryModel.create({
+        sequencePrefixKey: seq.sequencePrefixKey,
+        sequenceYearValue: 2026,
+        currentSequenceNumber: seq.currentSequenceNumber,
+        paddingDigitsCount: 4
+      });
+    }
 
     const totalRecordsCreated =
       3 + createdStudents.length +

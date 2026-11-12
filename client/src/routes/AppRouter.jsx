@@ -10,29 +10,29 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthentication } from '../context/AuthenticationContext.jsx';
 
 /* ─── Lazy page imports ─────────────────────────────────────── */
-import LoginView                from '../modules/auth/LoginView.jsx';
-import EnterpriseAppLayout      from '../layouts/EnterpriseAppLayout.jsx';
-import PublicPortalLayout        from '../layouts/PublicPortalLayout.jsx';
+import { LoginView }                from '../modules/auth/LoginView.jsx';
+import { EnterpriseAppLayout }      from '../layouts/EnterpriseAppLayout.jsx';
+import { PublicPortalLayout }        from '../layouts/PublicPortalLayout.jsx';
 
-import MembershipListView       from '../modules/memberships/MembershipListView.jsx';
+import { MembershipListView }       from '../modules/memberships/MembershipListView.jsx';
 
-import EventListView            from '../modules/events/EventListView.jsx';
-import DoorScannerView          from '../modules/events/DoorScannerView.jsx';
+import { EventListView }            from '../modules/events/EventListView.jsx';
+import { DoorScannerView }          from '../modules/events/DoorScannerView.jsx';
 
-import MerchandiseCatalogView   from '../modules/merchandise/MerchandiseCatalogView.jsx';
-import StockLedgerView          from '../modules/merchandise/StockLedgerView.jsx';
+import { MerchandiseCatalogView }   from '../modules/merchandise/MerchandiseCatalogView.jsx';
+import { StockLedgerView }          from '../modules/merchandise/StockLedgerView.jsx';
 
-import VolunteerKanbanView      from '../modules/activities/VolunteerKanbanView.jsx';
+import { VolunteerKanbanView }      from '../modules/activities/VolunteerKanbanView.jsx';
 
-import GeneralLedgerView        from '../modules/accounting/GeneralLedgerView.jsx';
-import ReimbursementsListView   from '../modules/accounting/ReimbursementsListView.jsx';
-import FinancialReportView      from '../modules/accounting/FinancialReportView.jsx';
+import { GeneralLedgerView }        from '../modules/accounting/GeneralLedgerView.jsx';
+import { ReimbursementsListView }   from '../modules/accounting/ReimbursementsListView.jsx';
+import { FinancialReportView }      from '../modules/accounting/FinancialReportView.jsx';
 
-import BroadcastsView           from '../modules/broadcasts/BroadcastsView.jsx';
-import SystemLogsView           from '../modules/diagnostics/SystemLogsView.jsx';
+import { BroadcastsView }           from '../modules/broadcasts/BroadcastsView.jsx';
+import SystemLogsView               from '../modules/diagnostics/SystemLogsView.jsx';
 
 /* ─── Role constants ────────────────────────────────────────── */
-const ROLE = { ADMIN: 'admin', OPERATIONS: 'operations', MEMBER: 'member' };
+const ROLE = { ADMIN: 'ADMIN', OPERATIONS: 'OPERATIONS', CUSTOMER: 'CUSTOMER' };
 
 /* ─── ProtectedRoute ────────────────────────────────────────── */
 function ProtectedRoute({ children, allowedRoles }) {
@@ -48,7 +48,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  if (allowedRoles && !allowedRoles.includes(currentUser?.role)) {
+  if (allowedRoles && !allowedRoles.includes(currentUser?.userRoleTier)) {
     return <Navigate to="/memberships" replace />;
   }
 

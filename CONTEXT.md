@@ -78,3 +78,4 @@
 
 ## 5. Context Lookup Protocol
 > **Protocol Rule**: Read ONLY `CONTEXT.md` first for architectural context. Never scan full directories or `docs/` unless debugging a specific file.
+

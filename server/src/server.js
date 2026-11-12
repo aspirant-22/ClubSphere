@@ -6,13 +6,15 @@
  * @AUTHOR: Garima Mittal
  */
 
+import dotenv from 'dotenv';
+dotenv.config();
 import http from 'http';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
+
 
 import { initializeSocketServer } from './core/socketServer.js';
 import { auditLogger } from './middleware/auditLogger.js';
@@ -27,7 +29,7 @@ import { accountingRouter } from './modules/accounting/accounting.routes.js';
 import { broadcastRouter } from './modules/broadcasts/broadcast.routes.js';
 import { diagnosticRouter } from './modules/diagnostics/diagnostic.routes.js';
 
-dotenv.config();
+
 
 const expressApplication = express();
 const primaryHttpServer = http.createServer(expressApplication);
