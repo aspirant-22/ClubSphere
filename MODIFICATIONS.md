@@ -135,5 +135,12 @@
   - Built `RegisterView.jsx` and added `/register` route in `AppRouter.jsx`, with navigation links between Login and Register views.
   - Implemented `MembershipApplyModal.jsx` and integrated customer application status banner and 1-click **"Confirm Dues & Elevate"** action button in `MembershipListView.jsx`.
   - Preserved `< 25` lines per function rule and `@AUTHOR: Garima Mittal` header across all affected files.
+- **Entry 023 - Clarify Pending Applicant Status, Lock Unpaid QR Badges, and Block Duplicate Applications:**
+  - Added dedicated Status badge column in `MembershipListView.jsx` clearly distinguishing `APPLICANT (CUSTOMER)` in amber vs `ACTIVE MEMBER` in green.
+  - Locked QR ID card preview action button in `MembershipListView.jsx` and `MemberCardModal.jsx` for records with pending dues, displaying "Pay dues to unlock QR ID" tooltip and state indicator.
+  - Hardened `handleFetchMyMembershipCard` in `membership.controller.js` to reject token generation with `403 DUES_PAYMENT_PENDING` if dues are unpaid.
+  - Prevented duplicate membership records in `membership.service.js` across both online application and campus table sign-ups, throwing clean `400 DUPLICATE_MEMBERSHIP_APPLICATION` error if an active or pending membership already exists.
+  - Updated `seedDatabase.js` to ensure seeded pending applicants retain `CUSTOMER` role until dues are paid and elevated to `MEMBER`.
+
 
 

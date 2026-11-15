@@ -17,7 +17,8 @@ import {
   Filter,
   DollarSign,
   UserCheck,
-  Award
+  Award,
+  Lock
 } from 'lucide-react';
 import { apiNetworkClient } from '../../services/apiNetworkClient.js';
 import { ControlPanelHeader } from '../../components/common/ControlPanelHeader.jsx';
@@ -195,7 +196,8 @@ export const MembershipListView = () => {
               <th className="table-dense-header">Student ID</th>
               <th className="table-dense-header">Department</th>
               <th className="table-dense-header">Tier</th>
-              <th className="table-dense-header">Dues Status</th>
+              <th className="table-dense-header">Status</th>
+              <th className="table-dense-header">Dues</th>
               <th className="table-dense-header">Valid Thru</th>
               <th className="table-dense-header text-right">Actions</th>
             </tr>
@@ -203,11 +205,11 @@ export const MembershipListView = () => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="8" className="p-8 text-center text-xs text-slate-400">Loading memberships...</td>
+                <td colSpan="9" className="p-8 text-center text-xs text-slate-400">Loading memberships...</td>
               </tr>
             ) : filteredMemberships.length === 0 ? (
               <tr>
-                <td colSpan="8" className="p-8 text-center text-xs text-slate-400">No members matched filter.</td>
+                <td colSpan="9" className="p-8 text-center text-xs text-slate-400">No members matched filter.</td>
               </tr>
             ) : (
               filteredMemberships.map((m) => (
@@ -231,16 +233,19 @@ export const MembershipListView = () => {
                   </td>
                   <td className="table-dense-cell">
                     {m.isDuesPaid ? (
-                      <span className="inline-flex items-center text-2xs font-bold text-emerald-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Paid (₹{m.duesAmountPayable})
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <CheckCircle className="w-3 h-3 mr-1 text-emerald-600" />
+                        ACTIVE MEMBER
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-2xs font-bold text-amber-700">
-                        <Clock className="w-3 h-3 mr-1" />
-                        Pending (₹{m.duesAmountPayable})
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <Clock className="w-3 h-3 mr-1 text-amber-600" />
+                        APPLICANT (CUSTOMER)
                       </span>
                     )}
+                  </td>
+                  <td className="table-dense-cell text-2xs font-medium text-slate-700">
+                    {m.isDuesPaid ? `Paid (₹${m.duesAmountPayable})` : `Pending (₹${m.duesAmountPayable})`}
                   </td>
                   <td className="table-dense-cell text-slate-500 text-2xs">
                     {m.membershipExpirationDate ? new Date(m.membershipExpirationDate).toLocaleDateString() : 'Pending Dues'}
@@ -257,13 +262,23 @@ export const MembershipListView = () => {
                           <span>Confirm Dues & Elevate</span>
                         </button>
                       )}
-                      <button
-                        onClick={() => setSelectedMemberForCard(m)}
-                        className="p-1 text-slate-400 hover:text-odoo-primary hover:bg-slate-100 rounded transition-colors"
-                        title="Inspect Member QR Card"
-                      >
-                        <QrCode className="w-4 h-4" />
-                      </button>
+                      {m.isDuesPaid ? (
+                        <button
+                          onClick={() => setSelectedMemberForCard(m)}
+                          className="p-1 text-slate-500 hover:text-odoo-primary hover:bg-slate-100 rounded transition-colors"
+                          title="Inspect Member QR Card"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-1 text-slate-300 cursor-not-allowed rounded"
+                          title="Pay dues to unlock QR ID"
+                        >
+                          <Lock className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

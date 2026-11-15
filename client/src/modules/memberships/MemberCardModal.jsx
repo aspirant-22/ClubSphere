@@ -8,13 +8,13 @@
 
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { X, CheckCircle, ShieldCheck, Calendar, Award } from 'lucide-react';
+import { X, CheckCircle, ShieldCheck, Calendar, Award, Lock } from 'lucide-react';
 
 export const MemberCardModal = ({ membership, onClose }) => {
   const [qrImageUrl, setQrImageUrl] = useState('');
 
   useEffect(() => {
-    if (membership) {
+    if (membership && membership.isDuesPaid) {
       const qrPayload = membership.digitalQrTokenPayload || membership.membershipSequenceCode;
       QRCode.toDataURL(qrPayload, { width: 180, margin: 1 })
         .then(setQrImageUrl)
@@ -53,7 +53,13 @@ export const MemberCardModal = ({ membership, onClose }) => {
 
         {/* Card Body */}
         <div className="p-5 flex flex-col items-center text-center space-y-4">
-          {qrImageUrl ? (
+          {!membership.isDuesPaid ? (
+            <div className="w-36 h-36 bg-amber-50 border-2 border-dashed border-amber-300 rounded-lg flex flex-col items-center justify-center p-2 text-amber-800">
+              <Lock className="w-8 h-8 text-amber-600 mb-1" />
+              <span className="text-2xs font-bold uppercase tracking-wider">Badge Locked</span>
+              <span className="text-3xs text-center text-amber-700 mt-1 leading-tight">Pay dues to unlock QR ID</span>
+            </div>
+          ) : qrImageUrl ? (
             <img src={qrImageUrl} alt="Member QR" className="w-36 h-36 border border-slate-200 p-1.5 rounded-lg shadow-xs" />
           ) : (
             <div className="w-36 h-36 bg-slate-100 animate-pulse rounded-lg" />
@@ -79,15 +85,22 @@ export const MemberCardModal = ({ membership, onClose }) => {
             <div>
               <span className="text-slate-400 block font-semibold">Valid Thru</span>
               <span className="text-slate-700 font-bold">
-                {membership.membershipExpirationDate ? new Date(membership.membershipExpirationDate).toLocaleDateString() : 'Active 2026-27'}
+                {membership.membershipExpirationDate ? new Date(membership.membershipExpirationDate).toLocaleDateString() : 'Pending Dues'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-1 text-emerald-700 text-2xs font-bold">
-            <CheckCircle className="w-3.5 h-3.5" />
-            <span>Verified Active Club Status</span>
-          </div>
+          {membership.isDuesPaid ? (
+            <div className="flex items-center space-x-1 text-emerald-700 text-2xs font-bold">
+              <CheckCircle className="w-3.5 h-3.5" />
+              <span>Verified Active Club Status</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-1 text-amber-700 text-2xs font-bold">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Application Pending Dues Settlement</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

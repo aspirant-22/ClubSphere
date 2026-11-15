@@ -135,6 +135,7 @@ const seedMembershipsAndLedger = async (adminUser, createdStudents) => {
     memberships.push(membership);
 
     if (isPaid) {
+      await UserModel.updateOne({ _id: student._id }, { userRoleTier: ERP_USER_ROLES.MEMBER });
       const journalCode = `JRN/2026/${String(i + 1).padStart(4, '0')}`;
       const duesAmt = membership.duesAmountPayable;
       const journal = await JournalEntryModel.create({

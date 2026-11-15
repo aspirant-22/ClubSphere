@@ -94,6 +94,14 @@ export const handleFetchMyMembershipCard = async (incomingHttpRequest, outgoingH
     });
   }
 
+  if (!membershipRecord.isDuesPaid) {
+    return outgoingHttpResponse.status(403).json({
+      successIndicator: false,
+      errorCodeIdentifier: 'DUES_PAYMENT_PENDING',
+      errorSummaryMessage: 'Pay dues to unlock QR ID badge and activate membership.'
+    });
+  }
+
   const qrDataUrl = await QRCode.toDataURL(
     membershipRecord.digitalQrTokenPayload || membershipRecord.membershipSequenceCode
   );

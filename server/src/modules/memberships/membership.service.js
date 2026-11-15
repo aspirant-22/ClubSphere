@@ -33,18 +33,21 @@ export const generateMembershipQrBadge = async (membershipSequenceCode, userIdSt
   return { stringifiedBadgePayload, generatedDataUrlQr };
 };
 
-export const applyForNewMembership = async (applicantUserId, applicationData) => {
-  const existingMembershipRecord = await MembershipModel.findOne({
-    associatedUserId: applicantUserId,
+const checkExistingMembership = async (userId) => {
+  const existingRecord = await MembershipModel.findOne({
+    associatedUserId: userId,
     lifecycleState: { $ne: ERP_LIFECYCLE_STATES.CANCELLED }
   });
-
-  if (existingMembershipRecord) {
-    const duplicateMembershipError = new Error('An active or pending membership already exists for this student.');
-    duplicateMembershipError.statusCode = 409;
-    duplicateMembershipError.errorCode = 'MEMBERSHIP_ALREADY_EXISTS';
-    throw duplicateMembershipError;
+  if (existingRecord) {
+    const error = new Error('Student already has an active or pending membership application.');
+    error.statusCode = 400;
+    error.errorCode = 'DUPLICATE_MEMBERSHIP_APPLICATION';
+    throw error;
   }
+};
+
+export const applyForNewMembership = async (applicantUserId, applicationData) => {
+  await checkExistingMembership(applicantUserId);
 
   const generatedMembershipCode = await generateNextSequenceCode('MEM');
   const duesAmountForTier = TIER_PRICING_MAP[applicationData.membershipTier] || 500;
@@ -146,6 +149,8 @@ export const registerCampusTableSignup = async (tableSignupData, officerUserId) 
       passwordCredentialHash: 'SkylineClub2026!',
       userRoleTier: ERP_USER_ROLES.CUSTOMER
     });
+  } else {
+    await checkExistingMembership(matchedUser._id);
   }
 
   const generatedMembershipCode = await generateNextSequenceCode('MEM');
