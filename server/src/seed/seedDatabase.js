@@ -222,6 +222,7 @@ const seedEventsAndTickets = async (adminUser, operationsLead, createdStudents) 
       tierIdentifier: tierId,
       tierName: tierName,
       unitPricePaid: price,
+      approvalState: 'CONFIRMED',
       admissionState: isCheckedIn ? TICKET_ADMISSION_STATES.CHECKED_IN : TICKET_ADMISSION_STATES.ISSUED,
       isCheckedIn: isCheckedIn,
       checkInTimestamp: isCheckedIn ? new Date(2026, 4, 18, 19, 15 + i) : null,

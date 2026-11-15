@@ -1,6 +1,6 @@
 /**
  * @FILE: ticket.model.js
- * @RESPONSIBILITY: Mongoose Ticket schema modeling individual seat admissions, sequential codes, and gate scan timestamps.
+ * @RESPONSIBILITY: Mongoose Ticket schema modeling individual seat admissions, sequential codes, payment proofs, and gate scan timestamps.
  * @DEPENDENCIES: mongoose.
  * @MODIFICATION_HOTSPOT: ticketSchema definition and check-in audit fields.
  * @AUTHOR: Garima Mittal
@@ -12,6 +12,12 @@ export const TICKET_ADMISSION_STATES = {
   ISSUED: 'ISSUED',
   CHECKED_IN: 'CHECKED_IN',
   CANCELLED: 'CANCELLED'
+};
+
+export const TICKET_APPROVAL_STATES = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  CONFIRMED: 'CONFIRMED',
+  REJECTED: 'REJECTED'
 };
 
 const ticketSchema = new mongoose.Schema(
@@ -49,6 +55,21 @@ const ticketSchema = new mongoose.Schema(
       required: true,
       min: 0
     },
+    approvalState: {
+      type: String,
+      required: true,
+      enum: Object.values(TICKET_APPROVAL_STATES),
+      default: TICKET_APPROVAL_STATES.PENDING_APPROVAL,
+      index: true
+    },
+    paymentDetails: {
+      paymentMode: { type: String, enum: ['CASH', 'ONLINE'], default: 'CASH' },
+      transactionId: { type: String, trim: true },
+      paymentScreenshotUrl: { type: String, trim: true },
+      submittedAt: { type: Date, default: Date.now },
+      approvedAt: { type: Date },
+      approvedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    },
     admissionState: {
       type: String,
       required: true,
@@ -73,7 +94,7 @@ const ticketSchema = new mongoose.Schema(
     },
     digitalQrPayload: {
       type: String,
-      required: true
+      default: ''
     }
   },
   {
@@ -83,4 +104,3 @@ const ticketSchema = new mongoose.Schema(
 );
 
 export const TicketModel = mongoose.model('Ticket', ticketSchema);
-

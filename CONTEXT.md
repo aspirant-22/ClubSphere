@@ -85,4 +85,11 @@
 - **Role-Based Membership Views**: In `MembershipListView.jsx`, Customers see an Applicant Portal with pending review status or apply button; Active Members see their personal Active Membership Card with QR view; Admins/Operations see the full directory table with "Confirm Dues & Elevate" actions.
 - **Sequence Registry Self-Healing**: Dynamic scan and sync in `sequenceRegistry.js` and counter initialization in `seedDatabase.js` prevent duplicate key errors (`E11000`).
 
+## 7. Payment Audit Wizards, Ticket Approval Wallet & Accounting Hub (2026-11-16)
+- **Membership Tier Selector & Payment Audit**: `MembershipApplyModal.jsx` supports selecting `STANDARD_ANNUAL` (₹500), `ALUMNI_SUPPORTER` (₹1,000), and `LIFETIME` (₹1,500). `DuesPaymentConfirmationModal.jsx` records auto-derived officer titles, Cash/Online toggle, required transaction ID, and green checkmark celebration. `PaymentDetailsModal.jsx` renders verified receipts.
+- **Spring Gala Ticket Payment Verification**: `event.service.js` blocks duplicate bookings for the same event. `TicketPurchaseModal.jsx` supports multi-step checkout with transaction ID and payment screenshot proof, placing tickets into `PENDING_APPROVAL`. `EventListView.jsx` features "My Tickets & Passes" wallet and Admin "Pending Ticket Approvals" queue with 1-click pass activation.
+- **Merchandise Order Tracking & Delivery Status**: `SalesOrderCheckoutModal.jsx` includes celebratory order confirmation with `SO/2026/XXXX` code and `RESERVED` pill. `MerchandiseCatalogView.jsx` provides a "Your Orders" tab with status tracking (`RESERVED` ➔ `READY_FOR_PICKUP` ➔ `DELIVERED`) and Admin "Mark Delivered" action.
+- **Unified Accounting Sub-Navigation Hub**: `AccountingNavHeader.jsx` links General Ledger, Expense Claims, and P&L Reports. `GeneralLedgerView.jsx` uses `table-fixed` column widths, memo tooltips, and column toggling. Strict `ADMIN` review RBAC on reimbursement claims.
+
+
 

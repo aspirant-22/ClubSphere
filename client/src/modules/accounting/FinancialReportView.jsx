@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { Landmark, TrendingUp, TrendingDown, DollarSign, Download, Printer } from 'lucide-react';
 import { apiNetworkClient } from '../../services/apiNetworkClient.js';
 import { ControlPanelHeader } from '../../components/common/ControlPanelHeader.jsx';
+import { AccountingNavHeader } from '../../components/accounting/AccountingNavHeader.jsx';
 
 export const FinancialReportView = () => {
   const [report, setReport] = useState(null);
@@ -56,6 +57,7 @@ export const FinancialReportView = () => {
       className="flex flex-col h-full bg-slate-50"
     >
       <ControlPanelHeader breadcrumbsArray={breadcrumbs} actionButtons={actionButtons} />
+      <AccountingNavHeader />
 
       <div className="flex-1 p-6 overflow-auto">
         <div className="max-w-4xl mx-auto space-y-6">

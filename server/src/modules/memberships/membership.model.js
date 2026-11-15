@@ -88,6 +88,13 @@ const membershipSchema = new mongoose.Schema(
     updatedByUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    },
+    paymentDetails: {
+      approvedByName: { type: String, trim: true },
+      approvedByDesignation: { type: String, trim: true },
+      paymentMode: { type: String, enum: ['CASH', 'ONLINE'], default: 'CASH' },
+      transactionId: { type: String, trim: true },
+      paidAt: { type: Date }
     }
   },
   {

@@ -39,9 +39,12 @@ export const CampusTableSignupSchema = z.object({
 });
 
 export const RecordDuesPaymentSchema = z.object({
-  paymentMethod: z.enum(['CASH_PAYMENT', 'BANK_TRANSFER', 'CAMPUS_CARD', 'ONLINE_GATEWAY']),
-  paymentReferenceIdentifier: z.string().min(3).max(64),
-  paidAmount: z.number().positive('Payment amount must be greater than zero')
+  paymentMethod: z.enum(['CASH_PAYMENT', 'BANK_TRANSFER', 'CAMPUS_CARD', 'ONLINE_GATEWAY', 'CASH', 'ONLINE']),
+  paymentReferenceIdentifier: z.string().min(1).max(64).optional(),
+  paidAmount: z.number().positive('Payment amount must be greater than zero'),
+  paymentMode: z.enum(['CASH', 'ONLINE']).optional(),
+  transactionId: z.string().optional(),
+  paidAt: z.string().optional()
 });
 
 export const MembershipQrVerifySchema = z.object({

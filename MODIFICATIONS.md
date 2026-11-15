@@ -150,6 +150,12 @@
   - Enabled read-receipt acknowledgment persistence and immediate UI badge update to "Acknowledged" in `BroadcastsView.jsx` and `broadcast.routes.js`.
   - Aligned `/api/v1/diagnostics/health` and `/api/v1/diagnostics/logs` payload structures with `SystemLogsView.jsx` telemetry metrics.
   - Configured `apiNetworkClient.js` with 15000ms timeout and eliminated false offline banners on standard API error codes.
+- **Entry 025 - Payment Audit Wizards, Ticket Approval Wallet, Order Tracking, and Accounting Hub:**
+  - **Memberships**: Added tier selector cards (`STANDARD_ANNUAL` ₹500, `ALUMNI_SUPPORTER` ₹1,000, `LIFETIME` ₹1,500) in `MembershipApplyModal.jsx`. Built `DuesPaymentConfirmationModal.jsx` with read-only officer designation, Cash/Online toggle, required transaction ID, and green checkmark celebration state. Built `PaymentDetailsModal.jsx` receipt viewer accessible from `MembershipListView.jsx`.
+  - **Events & Ticketing**: Added duplicate purchase lock in `event.service.js` preventing multiple bookings. Created multi-step checkout in `TicketPurchaseModal.jsx` with online payment proof and transaction ID requirements, setting tickets in `PENDING_APPROVAL`. Added personal ticket wallet and admin pending approval queue in `EventListView.jsx` with 1-click approval activating scannable QR passes and double-entry revenue journals.
+  - **Merchandise**: Added celebratory post-checkout screen in `SalesOrderCheckoutModal.jsx` with green checkmark, `SO/2026/XXXX` code, and `RESERVED` status pill. Added "Your Orders" tab in `MerchandiseCatalogView.jsx` with delivery status badges (`RESERVED` ➔ `READY_FOR_PICKUP` ➔ `DELIVERED`) and admin "Mark Delivered" fulfillment action.
+  - **Accounting**: Built unified `AccountingNavHeader.jsx` sub-navigation hub across General Ledger, Expense Claims, and P&L Reports. Fixed column widths and text overlap in `GeneralLedgerView.jsx` using `table-fixed`, memo tooltips, and column picker. Enforced strict `ADMIN` review RBAC on reimbursement claims.
+  - Maintained `< 25` lines per function rule and `@AUTHOR: Garima Mittal` on all modified/created files.
 
 
 

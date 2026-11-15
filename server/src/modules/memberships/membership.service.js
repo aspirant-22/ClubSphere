@@ -76,7 +76,13 @@ const elevateUserRoleToMember = async (userId) => {
   console.log(`[Membership Service]: Elevating user ${userId} to active MEMBER tier`);
 };
 
-export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymentData, officerUserId) => {
+const deriveOfficerDesignation = (roleTier) => {
+  if (roleTier === 'ADMIN') return 'Club Executive / Treasurer';
+  if (roleTier === 'OPERATIONS') return 'Operations Lead';
+  return 'Club Officer';
+};
+
+export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymentData, officerUserId, officerObj = null) => {
   const targetMembership = await MembershipModel.findById(targetMembershipId);
   if (!targetMembership) {
     const notFoundError = new Error('Membership record not found.');
@@ -86,11 +92,15 @@ export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymen
 
   validateLifecycleStateTransition(targetMembership.lifecycleState, ERP_LIFECYCLE_STATES.DONE);
 
-  const paymentCalendarDate = new Date();
-  const membershipExpiryCalendarDate = new Date();
+  const paymentCalendarDate = paymentData.paidAt ? new Date(paymentData.paidAt) : new Date();
+  const membershipExpiryCalendarDate = new Date(paymentCalendarDate);
   membershipExpiryCalendarDate.setDate(
     paymentCalendarDate.getDate() + ERP_SYSTEM_PARAMETERS.MEMBERSHIP_VALIDITY_DAYS
   );
+
+  const officerName = officerObj?.fullName || 'Club Officer';
+  const officerDesignation = deriveOfficerDesignation(officerObj?.userRoleTier);
+  const paymentMode = paymentData.paymentMode || (paymentData.paymentMethod?.includes('ONLINE') ? 'ONLINE' : 'CASH');
 
   targetMembership.lifecycleState = ERP_LIFECYCLE_STATES.DONE;
   targetMembership.isDuesPaid = true;
@@ -98,12 +108,20 @@ export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymen
   targetMembership.membershipStartDate = paymentCalendarDate;
   targetMembership.membershipExpirationDate = membershipExpiryCalendarDate;
   targetMembership.updatedByUserId = officerUserId;
+  targetMembership.paymentDetails = {
+    approvedByName: officerName,
+    approvedByDesignation: officerDesignation,
+    paymentMode,
+    transactionId: paymentData.transactionId || paymentData.paymentReferenceIdentifier || 'N/A',
+    paidAt: paymentCalendarDate
+  };
   await targetMembership.save();
 
   await elevateUserRoleToMember(targetMembership.associatedUserId);
 
   const generatedJournalCode = await generateNextSequenceCode('JRN');
-  const debitAccountTarget = paymentData.paymentMethod === 'CASH_PAYMENT'
+  const isCash = paymentMode === 'CASH' || paymentData.paymentMethod === 'CASH_PAYMENT';
+  const debitAccountTarget = isCash
     ? ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.PETTY_CASH_FLOAT
     : ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.BANK_CAMPUS_ACCOUNT;
 
@@ -117,7 +135,7 @@ export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymen
         accountIdentifierCode: debitAccountTarget,
         debitAmountValue: paymentData.paidAmount,
         creditAmountValue: 0,
-        lineItemDescription: `Dues received via ${paymentData.paymentMethod}`
+        lineItemDescription: `Dues received via ${paymentMode}`
       },
       {
         accountIdentifierCode: ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.INCOME_MEMBERSHIP_DUES,

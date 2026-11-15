@@ -28,8 +28,11 @@ export const EventCreationSchema = z.object({
 
 export const PurchaseTicketOrderSchema = z.object({
   ticketTierIdentifier: z.string().min(2).max(30),
-  ticketQuantity: z.number().int().min(1).max(10),
-  paymentMethod: z.enum(['ONLINE_PAYMENT', 'CASH_AT_DOOR', 'CAMPUS_WALLET']),
+  ticketQuantity: z.number().int().min(1).max(10).default(1),
+  paymentMethod: z.enum(['ONLINE_PAYMENT', 'CASH_AT_DOOR', 'CAMPUS_WALLET', 'CASH', 'ONLINE']),
+  paymentMode: z.enum(['CASH', 'ONLINE']).optional(),
+  transactionId: z.string().optional(),
+  paymentScreenshotUrl: z.string().optional(),
   attendeeNotes: z.string().max(250).optional()
 });
 
@@ -37,4 +40,3 @@ export const DoorScannerCheckInSchema = z.object({
   ticketTrackingCode: z.string().min(5),
   gateScannerLocation: z.string().default('MAIN_ENTRANCE_DOOR')
 });
-

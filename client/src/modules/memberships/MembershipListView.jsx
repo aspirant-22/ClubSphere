@@ -1,7 +1,7 @@
 /**
  * @FILE: MembershipListView.jsx
  * @RESPONSIBILITY: Dense Odoo multi-column member directory with tier badges, dues filters, QR inspection triggers, and role elevation actions.
- * @DEPENDENCIES: react, lucide-react, apiNetworkClient.js, ControlPanelHeader.jsx, MemberCardModal.jsx, TableSignupModal.jsx, MembershipApplyModal.jsx, AuthenticationContext.jsx, SystemProcessingContext.jsx.
+ * @DEPENDENCIES: react, lucide-react, apiNetworkClient.js, ControlPanelHeader.jsx, MemberCardModal.jsx, TableSignupModal.jsx, MembershipApplyModal.jsx, DuesPaymentConfirmationModal.jsx, PaymentDetailsModal.jsx, AuthenticationContext.jsx, SystemProcessingContext.jsx.
  * @MODIFICATION_HOTSPOT: Table filtering and dues action triggers.
  * @AUTHOR: Garima Mittal
  */
@@ -20,13 +20,15 @@ import {
   Award,
   Lock,
   ShieldCheck,
-  CreditCard
+  Receipt
 } from 'lucide-react';
 import { apiNetworkClient } from '../../services/apiNetworkClient.js';
 import { ControlPanelHeader } from '../../components/common/ControlPanelHeader.jsx';
 import { MemberCardModal } from './MemberCardModal.jsx';
 import { TableSignupModal } from './TableSignupModal.jsx';
 import { MembershipApplyModal } from './MembershipApplyModal.jsx';
+import { DuesPaymentConfirmationModal } from './DuesPaymentConfirmationModal.jsx';
+import { PaymentDetailsModal } from './PaymentDetailsModal.jsx';
 import { useAuthentication } from '../../context/AuthenticationContext.jsx';
 import { useSystemProcessing } from '../../context/SystemProcessingContext.jsx';
 
@@ -36,11 +38,12 @@ export const MembershipListView = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [tierFilter, setTierFilter] = useState('ALL');
   const [selectedMemberForCard, setSelectedMemberForCard] = useState(null);
+  const [confirmingMembership, setConfirmingMembership] = useState(null);
+  const [viewingPaymentRecord, setViewingPaymentRecord] = useState(null);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, isAdminOrOperations, hydrateUserSession } = useAuthentication();
-  const { runWithProcessingLock } = useSystemProcessing();
 
   const loadMembershipsData = async () => {
     setIsLoading(true);
@@ -61,16 +64,9 @@ export const MembershipListView = () => {
     loadMembershipsData();
   }, []);
 
-  const handleElevateToMember = async (membershipRecord) => {
-    await runWithProcessingLock(async () => {
-      await apiNetworkClient.post(`/memberships/${membershipRecord._id}/pay-dues`, {
-        paymentMethod: 'CASH_PAYMENT',
-        paymentReferenceIdentifier: `ELEVATE_CASH_${membershipRecord.membershipSequenceCode}`,
-        paidAmount: membershipRecord.duesAmountPayable || 500
-      });
-      await loadMembershipsData();
-      await hydrateUserSession();
-    }, 'Confirming dues & elevating student to Member...');
+  const handleDuesSuccess = async () => {
+    await loadMembershipsData();
+    await hydrateUserSession();
   };
 
   useEffect(() => {
@@ -101,62 +97,62 @@ export const MembershipListView = () => {
            (m.associatedUserId?._id || m.associatedUserId) === currentUser?._id
   );
 
-  const actionButtons = (
-    <div className="flex items-center space-x-2">
-      {currentUser?.userRoleTier === 'CUSTOMER' && !userMembership && (
-        <button
-          onClick={() => setIsApplyModalOpen(true)}
-          className="btn-accent-action flex items-center space-x-1"
-        >
-          <Award className="w-3.5 h-3.5" />
-          <span>Apply for Membership</span>
-        </button>
-      )}
-    </div>
-  );
+  const actionButtons = [];
+  if (currentUser?.userRoleTier === 'CUSTOMER' && !userMembership) {
+    actionButtons.push({
+      label: 'Apply for Membership',
+      variant: 'primary',
+      icon: Plus,
+      onClick: () => setIsApplyModalOpen(true)
+    });
+  }
 
   const renderCustomerView = () => (
-    <div className="flex-1 p-6 flex flex-col items-center justify-center bg-odoo-surface">
-      <div className="w-full max-w-md bg-white border border-odoo-border rounded-xl shadow-sm p-6 text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-100 text-amber-800 rounded-full mb-1">
-          <Clock className="w-6 h-6" />
+    <div className="p-8 max-w-xl mx-auto space-y-6">
+      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm text-center space-y-4">
+        <div className="inline-flex p-3 bg-amber-50 rounded-full border border-amber-200">
+          <Clock className="w-8 h-8 text-amber-600" />
         </div>
-        <h2 className="text-base font-bold text-slate-900">Student Applicant Portal</h2>
+        <div>
+          <h2 className="text-base font-bold text-slate-800">Membership Application Status</h2>
+          <p className="text-xs text-slate-500 mt-1">
+            Track your official club registration and dues payment status
+          </p>
+        </div>
         {userMembership ? (
-          <div className="space-y-3 text-left bg-slate-50 border border-slate-200 rounded-lg p-4">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500">Application Code:</span>
-              <span className="font-mono font-bold text-odoo-primary">{userMembership.membershipSequenceCode}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500">Plan Tier:</span>
-              <span className="font-semibold text-slate-800">{userMembership.membershipTier}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500">Dues Amount:</span>
-              <span className="font-semibold text-slate-800">₹{userMembership.duesAmountPayable}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500">Dues Status:</span>
-              <span className="px-2 py-0.5 rounded text-2xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                PENDING CONFIRMATION
+          <div className="p-4 bg-slate-50 rounded border border-slate-200 text-left space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Tracking Code:</span>
+              <span className="font-mono font-bold text-odoo-primary">
+                {userMembership.membershipSequenceCode}
               </span>
             </div>
-            <p className="text-2xs text-slate-500 pt-2 border-t border-slate-200 leading-normal">
-              Your application is under review. Once an Admin or Operations officer confirms dues collection, your role elevates to Member and unlocks your digital QR badge!
-            </p>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Tier Selected:</span>
+              <span className="font-semibold text-slate-800">{userMembership.membershipTier}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Dues Amount:</span>
+              <span className="font-bold text-slate-900">₹{userMembership.duesAmountPayable}</span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+              <span className="text-slate-500">Current Status:</span>
+              <span className="px-2 py-0.5 rounded text-2xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                PENDING ADMIN CONFIRMATION
+              </span>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-slate-600 leading-relaxed">
-              You currently have guest access as a Customer. Apply for club membership to unlock discounted Gala passes, merchandise pricing, and your digital membership card!
+          <div className="space-y-3 pt-2">
+            <p className="text-xs text-slate-600">
+              You haven't submitted a club membership application yet. Unlock member discounts and voting rights!
             </p>
             <button
               onClick={() => setIsApplyModalOpen(true)}
-              className="btn-primary-action w-full py-2 flex items-center justify-center space-x-1 font-semibold"
+              className="btn-primary-action px-6 py-2 inline-flex items-center space-x-1.5"
             >
-              <Award className="w-4 h-4 mr-1" />
-              <span>Apply for Club Membership</span>
+              <Plus className="w-4 h-4" />
+              <span>Apply for Membership Now</span>
             </button>
           </div>
         )}
@@ -165,50 +161,63 @@ export const MembershipListView = () => {
   );
 
   const renderActiveMemberView = () => (
-    <div className="flex-1 p-6 flex flex-col items-center justify-center bg-odoo-surface">
-      <div className="w-full max-w-md bg-white border border-odoo-border rounded-xl shadow-sm p-6 text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 text-emerald-800 rounded-full mb-1">
-          <ShieldCheck className="w-6 h-6" />
+    <div className="p-8 max-w-xl mx-auto space-y-6">
+      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm text-center space-y-4">
+        <div className="inline-flex p-3 bg-emerald-50 rounded-full border border-emerald-200">
+          <ShieldCheck className="w-8 h-8 text-emerald-600" />
         </div>
         <div>
-          <h2 className="text-base font-bold text-slate-900">Active Club Membership</h2>
-          <p className="text-xs text-slate-500">Skyline Student Association Verified Member</p>
+          <h2 className="text-base font-bold text-slate-800">Active Membership Card</h2>
+          <p className="text-xs text-slate-500 mt-1">
+            You are a verified active member in good standing
+          </p>
         </div>
-        <div className="space-y-3 text-left bg-slate-50 border border-slate-200 rounded-lg p-4">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500">Membership Code:</span>
+        <div className="p-4 bg-slate-50 rounded border border-slate-200 text-left space-y-2 text-xs">
+          <div className="flex justify-between">
+            <span className="text-slate-500">Member ID:</span>
             <span className="font-mono font-bold text-odoo-primary">
               {userMembership?.membershipSequenceCode || 'MEM/2026/0001'}
             </span>
           </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500">Member Name:</span>
-            <span className="font-semibold text-slate-800">{currentUser?.fullName}</span>
-          </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between">
             <span className="text-slate-500">Tier:</span>
-            <span className="font-semibold text-purple-700">{userMembership?.membershipTier || 'STANDARD_ANNUAL'}</span>
-          </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500">Valid Through:</span>
             <span className="font-semibold text-slate-800">
-              {userMembership?.membershipExpirationDate ? new Date(userMembership.membershipExpirationDate).toLocaleDateString() : 'Active 2026-27'}
+              {userMembership?.membershipTier || 'STANDARD_ANNUAL'}
             </span>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between">
+            <span className="text-slate-500">Valid Through:</span>
+            <span className="text-slate-700">
+              {userMembership?.membershipExpirationDate
+                ? new Date(userMembership.membershipExpirationDate).toLocaleDateString()
+                : 'Active 2026 Season'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center pt-2 border-t border-slate-200">
             <span className="text-slate-500">Dues Status:</span>
             <span className="px-2 py-0.5 rounded text-2xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
               PAID & ACTIVE
             </span>
           </div>
         </div>
-        <button
-          onClick={() => setSelectedMemberForCard(userMembership || { membershipSequenceCode: 'MEM/2026/0001', isDuesPaid: true, associatedUserId: currentUser })}
-          className="btn-primary-action w-full py-2 flex items-center justify-center space-x-1.5 font-semibold"
-        >
-          <QrCode className="w-4 h-4" />
-          <span>View Digital QR ID Card</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          {userMembership && (
+            <button
+              onClick={() => setViewingPaymentRecord(userMembership)}
+              className="btn-secondary-action flex-1 py-2 flex items-center justify-center space-x-1.5 font-semibold text-xs"
+            >
+              <Receipt className="w-4 h-4 text-emerald-600" />
+              <span>View Payment Receipt</span>
+            </button>
+          )}
+          <button
+            onClick={() => setSelectedMemberForCard(userMembership || { membershipSequenceCode: 'MEM/2026/0001', isDuesPaid: true, associatedUserId: currentUser })}
+            className="btn-primary-action flex-1 py-2 flex items-center justify-center space-x-1.5 font-semibold text-xs"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Digital QR ID Card</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -281,7 +290,7 @@ export const MembershipListView = () => {
                   <div className="inline-flex items-center space-x-1.5">
                     {isAdminOrOperations() && !m.isDuesPaid && (
                       <button
-                        onClick={() => handleElevateToMember(m)}
+                        onClick={() => setConfirmingMembership(m)}
                         className="px-2 py-0.5 text-2xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded shadow-xs inline-flex items-center space-x-1 transition-colors"
                         title="Confirm Dues & Elevate to Member"
                       >
@@ -290,13 +299,23 @@ export const MembershipListView = () => {
                       </button>
                     )}
                     {m.isDuesPaid ? (
-                      <button
-                        onClick={() => setSelectedMemberForCard(m)}
-                        className="p-1 text-slate-500 hover:text-odoo-primary hover:bg-slate-100 rounded transition-colors"
-                        title="Inspect Member QR Card"
-                      >
-                        <QrCode className="w-4 h-4" />
-                      </button>
+                      <div className="inline-flex items-center space-x-1">
+                        <button
+                          onClick={() => setViewingPaymentRecord(m)}
+                          className="px-1.5 py-0.5 text-2xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded border border-slate-300 inline-flex items-center space-x-1 transition-colors"
+                          title="Show Payment Details"
+                        >
+                          <Receipt className="w-3 h-3 text-emerald-600" />
+                          <span>Receipt</span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedMemberForCard(m)}
+                          className="p-1 text-slate-500 hover:text-odoo-primary hover:bg-slate-100 rounded transition-colors"
+                          title="Inspect Member QR Card"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                      </div>
                     ) : (
                       <button
                         disabled
@@ -324,7 +343,6 @@ export const MembershipListView = () => {
     >
       <ControlPanelHeader breadcrumbsArray={breadcrumbs} actionButtons={actionButtons} />
 
-      {/* Customer Status Alert Banner only when Customer has an unpaid membership */}
       {currentUser?.userRoleTier === 'CUSTOMER' && userMembership && !userMembership.isDuesPaid && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between text-xs text-amber-900">
           <div className="flex items-center space-x-2">
@@ -336,14 +354,12 @@ export const MembershipListView = () => {
         </div>
       )}
 
-      {/* Render appropriate view based on role */}
       {currentUser?.userRoleTier === 'CUSTOMER' ? (
         renderCustomerView()
       ) : currentUser?.userRoleTier === 'MEMBER' ? (
         renderActiveMemberView()
       ) : (
         <>
-          {/* Admin / Operations Filter Toolbar */}
           <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-odoo-border text-xs">
             <div className="flex items-center space-x-3 w-1/2">
               <div className="relative w-full max-w-xs">
@@ -394,6 +410,19 @@ export const MembershipListView = () => {
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
         onApplySuccess={() => loadMembershipsData()}
+      />
+
+      <DuesPaymentConfirmationModal
+        isOpen={!!confirmingMembership}
+        onClose={() => setConfirmingMembership(null)}
+        membershipRecord={confirmingMembership}
+        onDuesPaidSuccess={handleDuesSuccess}
+      />
+
+      <PaymentDetailsModal
+        isOpen={!!viewingPaymentRecord}
+        onClose={() => setViewingPaymentRecord(null)}
+        membershipRecord={viewingPaymentRecord}
       />
     </div>
   );

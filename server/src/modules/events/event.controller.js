@@ -1,8 +1,8 @@
 /**
  * @FILE: event.controller.js
- * @RESPONSIBILITY: Express controllers handling event publishing, ticket purchasing, door QR validation, and event reconciliations.
+ * @RESPONSIBILITY: Express controller handling event CRUD, ticket purchases, gate scanner validations, and ticket approvals.
  * @DEPENDENCIES: event.service.js, event.model.js, ticket.model.js, qrcode.
- * @MODIFICATION_HOTSPOT: handleTicketPurchase and handleDoorScannerCheckIn.
+ * @MODIFICATION_HOTSPOT: handleTicketPurchase, handleApproveTicketPurchase, and handleDoorScannerCheckIn.
  * @AUTHOR: Garima Mittal
  */
 
@@ -11,50 +11,52 @@ import {
   createNewEvent,
   purchaseTicketsWithQuotaLock,
   validateDoorScannerCheckIn,
-  generateEventReconciliationSummary
+  generateEventReconciliationSummary,
+  approveTicketPurchase,
+  getPendingTicketApprovals
 } from './event.service.js';
 import { EventModel } from './event.model.js';
-import { TicketModel } from './ticket.model.js';
+import { TicketModel, TICKET_APPROVAL_STATES } from './ticket.model.js';
 
 export const handleCreateEvent = async (incomingHttpRequest, outgoingHttpResponse) => {
   try {
     const creatorUserId = incomingHttpRequest.authenticatedUser.userId;
     const createdEvent = await createNewEvent(incomingHttpRequest.body, creatorUserId);
-
     return outgoingHttpResponse.status(201).json({
       successIndicator: true,
-      statusMessage: 'Event created and published successfully.',
-      eventRecord: createdEvent
+      statusMessage: 'Event created and scheduled successfully.',
+      createdEvent
     });
-  } catch (creationError) {
-    const statusCode = creationError.statusCode || 500;
-    return outgoingHttpResponse.status(statusCode).json({
+  } catch (error) {
+    return outgoingHttpResponse.status(error.statusCode || 500).json({
       successIndicator: false,
-      errorCodeIdentifier: creationError.errorCode || 'EVENT_CREATION_FAILED',
-      errorSummaryMessage: creationError.message
+      errorSummaryMessage: error.message
     });
   }
 };
 
 export const handleListEvents = async (incomingHttpRequest, outgoingHttpResponse) => {
-  const publishedEventsList = await EventModel.find({ isPublishedToPublic: true })
-    .sort({ startDateTime: 1 });
-
-  return outgoingHttpResponse.status(200).json({
-    successIndicator: true,
-    totalEventsCount: publishedEventsList.length,
-    eventsList: publishedEventsList
-  });
+  try {
+    const eventsList = await EventModel.find({ isPublishedToPublic: true }).sort({ startDateTime: 1 });
+    return outgoingHttpResponse.status(200).json({
+      successIndicator: true,
+      totalCount: eventsList.length,
+      eventsList
+    });
+  } catch (error) {
+    return outgoingHttpResponse.status(500).json({
+      successIndicator: false,
+      errorSummaryMessage: error.message
+    });
+  }
 };
 
 export const handleGetEventById = async (incomingHttpRequest, outgoingHttpResponse) => {
   const eventId = incomingHttpRequest.params.eventId;
   const eventRecord = await EventModel.findById(eventId);
-
   if (!eventRecord) {
     return outgoingHttpResponse.status(404).json({
       successIndicator: false,
-      errorCodeIdentifier: 'EVENT_NOT_FOUND',
       errorSummaryMessage: 'Event record not found.'
     });
   }
@@ -92,15 +94,49 @@ export const handleTicketPurchase = async (incomingHttpRequest, outgoingHttpResp
 
     return outgoingHttpResponse.status(201).json({
       successIndicator: true,
-      statusMessage: 'Tickets successfully issued and reservation locked.',
+      statusMessage: 'Ticket booking submitted for approval.',
       purchaseSummary: purchaseResult
     });
-  } catch (purchaseError) {
-    const statusCode = purchaseError.statusCode || 500;
-    return outgoingHttpResponse.status(statusCode).json({
+  } catch (error) {
+    return outgoingHttpResponse.status(error.statusCode || 500).json({
       successIndicator: false,
-      errorCodeIdentifier: purchaseError.errorCode || 'TICKET_PURCHASE_FAILED',
-      errorSummaryMessage: purchaseError.message
+      errorCodeIdentifier: error.errorCode || 'TICKET_PURCHASE_FAILED',
+      errorSummaryMessage: error.message
+    });
+  }
+};
+
+export const handleGetPendingTicketApprovals = async (incomingHttpRequest, outgoingHttpResponse) => {
+  try {
+    const pendingTickets = await getPendingTicketApprovals();
+    return outgoingHttpResponse.status(200).json({
+      successIndicator: true,
+      pendingCount: pendingTickets.length,
+      pendingTickets
+    });
+  } catch (error) {
+    return outgoingHttpResponse.status(500).json({
+      successIndicator: false,
+      errorSummaryMessage: error.message
+    });
+  }
+};
+
+export const handleApproveTicketPurchase = async (incomingHttpRequest, outgoingHttpResponse) => {
+  try {
+    const ticketId = incomingHttpRequest.params.ticketId;
+    const officerUserId = incomingHttpRequest.authenticatedUser.userId;
+    const approvedTicket = await approveTicketPurchase(ticketId, officerUserId);
+
+    return outgoingHttpResponse.status(200).json({
+      successIndicator: true,
+      statusMessage: 'Ticket approved and digital pass activated.',
+      approvedTicket
+    });
+  } catch (error) {
+    return outgoingHttpResponse.status(error.statusCode || 500).json({
+      successIndicator: false,
+      errorSummaryMessage: error.message
     });
   }
 };
@@ -109,12 +145,7 @@ export const handleDoorScannerCheckIn = async (incomingHttpRequest, outgoingHttp
   try {
     const staffUserId = incomingHttpRequest.authenticatedUser.userId;
     const { ticketTrackingCode, gateScannerLocation } = incomingHttpRequest.body;
-
-    const admissionResult = await validateDoorScannerCheckIn(
-      ticketTrackingCode,
-      gateScannerLocation,
-      staffUserId
-    );
+    const admissionResult = await validateDoorScannerCheckIn(ticketTrackingCode, gateScannerLocation, staffUserId);
 
     const httpStatus = admissionResult.isAdmitted ? 200 : 409;
     return outgoingHttpResponse.status(httpStatus).json({
@@ -124,7 +155,6 @@ export const handleDoorScannerCheckIn = async (incomingHttpRequest, outgoingHttp
   } catch (scanError) {
     return outgoingHttpResponse.status(500).json({
       successIndicator: false,
-      errorCodeIdentifier: 'GATE_SCANNER_ERROR',
       errorSummaryMessage: scanError.message
     });
   }
@@ -138,7 +168,9 @@ export const handleGetMyTickets = async (incomingHttpRequest, outgoingHttpRespon
 
   const ticketsWithQr = await Promise.all(
     userTickets.map(async (t) => {
-      const qrDataUrl = await QRCode.toDataURL(t.ticketTrackingCode);
+      const isConfirmed = t.approvalState === TICKET_APPROVAL_STATES.CONFIRMED ||
+        (!t.approvalState && t.admissionState === 'ISSUED');
+      const qrDataUrl = isConfirmed ? await QRCode.toDataURL(t.ticketTrackingCode) : null;
       return { ...t.toObject(), qrDataUrl };
     })
   );
@@ -154,7 +186,6 @@ export const handleEventReconciliation = async (incomingHttpRequest, outgoingHtt
   try {
     const eventId = incomingHttpRequest.params.eventId;
     const reconciliationReport = await generateEventReconciliationSummary(eventId);
-
     return outgoingHttpResponse.status(200).json({
       successIndicator: true,
       reconciliationReport
@@ -166,4 +197,3 @@ export const handleEventReconciliation = async (incomingHttpRequest, outgoingHtt
     });
   }
 };
-

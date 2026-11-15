@@ -36,6 +36,12 @@ export const EnterpriseAppLayout = () => {
   const { currentUser } = useAuthentication();
   const isAdmin = currentUser?.userRoleTier === 'ADMIN';
 
+  const modules = PRIMARY_APP_MODULES.map((m) =>
+    m.label === 'Accounting'
+      ? { ...m, path: isAdmin ? '/accounting/ledger' : '/accounting/reimbursements' }
+      : m
+  );
+
   return (
     <div
       data-component="EnterpriseAppLayout"
@@ -49,7 +55,7 @@ export const EnterpriseAppLayout = () => {
         </div>
 
         <nav className="flex-1 flex flex-col space-y-3 w-full px-2">
-          {PRIMARY_APP_MODULES.map((module) => {
+          {modules.map((module) => {
             const IconComponent = module.icon;
             return (
               <NavLink

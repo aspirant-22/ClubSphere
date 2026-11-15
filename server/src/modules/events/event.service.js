@@ -1,14 +1,14 @@
 /**
  * @FILE: event.service.js
- * @RESPONSIBILITY: Business logic for event scheduling, Spring Gala ticketing, membership discount validation, and QR door scanning.
+ * @RESPONSIBILITY: Business logic for event scheduling, Spring Gala ticketing, duplicate prevention, payment audit approvals, and QR door scanning.
  * @DEPENDENCIES: event.model.js, ticket.model.js, membership.model.js, sequenceRegistry.js, doubleEntryLedger.js, erpConfig.js, qrcode.
- * @MODIFICATION_HOTSPOT: purchaseTicketsWithQuotaLock and validateDoorScannerCheckIn.
+ * @MODIFICATION_HOTSPOT: purchaseTicketsWithQuotaLock, approveTicketPurchase, and validateDoorScannerCheckIn.
  * @AUTHOR: Garima Mittal
  */
 
 import QRCode from 'qrcode';
 import { EventModel } from './event.model.js';
-import { TicketModel, TICKET_ADMISSION_STATES } from './ticket.model.js';
+import { TicketModel, TICKET_ADMISSION_STATES, TICKET_APPROVAL_STATES } from './ticket.model.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { generateNextSequenceCode } from '../../core/sequenceRegistry.js';
 import { ERP_LIFECYCLE_STATES } from '../../core/finiteStateMachine.js';
@@ -17,8 +17,7 @@ import { ERP_SYSTEM_PARAMETERS } from '../../config/erpConfig.js';
 
 export const createNewEvent = async (eventData, creatorUserId) => {
   const generatedEventCode = await generateNextSequenceCode('EVT');
-
-  const createdEvent = await EventModel.create({
+  return await EventModel.create({
     eventTrackingCode: generatedEventCode,
     eventTitle: eventData.eventTitle,
     eventDescription: eventData.eventDescription,
@@ -31,111 +30,147 @@ export const createNewEvent = async (eventData, creatorUserId) => {
     isPublishedToPublic: true,
     createdByUserId: creatorUserId
   });
-
-  console.log(`[Event Service]: Created event ${generatedEventCode}: ${eventData.eventTitle}`);
-  return createdEvent;
 };
 
-export const purchaseTicketsWithQuotaLock = async (eventId, purchasePayload, purchaserUserId) => {
-  const targetEvent = await EventModel.findById(eventId);
-  if (!targetEvent) {
-    const error = new Error('Target event not found.');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const selectedTier = targetEvent.ticketTiers.find(
-    (tier) => tier.tierIdentifier === purchasePayload.ticketTierIdentifier.toUpperCase()
-  );
-
-  if (!selectedTier) {
-    const error = new Error(`Tier ${purchasePayload.ticketTierIdentifier} not available on this event.`);
+const verifyDuplicateTicketBooking = async (eventId, purchaserUserId) => {
+  const existingTicket = await TicketModel.findOne({
+    associatedEventId: eventId,
+    purchaserUserId,
+    admissionState: { $ne: TICKET_ADMISSION_STATES.CANCELLED },
+    approvalState: { $in: [TICKET_APPROVAL_STATES.PENDING_APPROVAL, TICKET_APPROVAL_STATES.CONFIRMED] }
+  });
+  if (existingTicket) {
+    const error = new Error('You already have an active or pending ticket for this event.');
     error.statusCode = 400;
+    error.errorCode = 'DUPLICATE_TICKET_PURCHASE';
     throw error;
   }
+};
 
-  if (selectedTier.isMemberExclusive) {
-    const activeMembership = await MembershipModel.findOne({
-      associatedUserId: purchaserUserId,
-      lifecycleState: ERP_LIFECYCLE_STATES.DONE,
-      isDuesPaid: true
-    });
-    if (!activeMembership) {
-      const error = new Error('This ticket tier requires an active, paid club membership.');
-      error.statusCode = 403;
-      error.errorCode = 'MEMBER_EXCLUSIVE_TIER_RESTRICTION';
-      throw error;
-    }
+const verifyMemberExclusiveTier = async (selectedTier, purchaserUserId) => {
+  if (!selectedTier.isMemberExclusive) return;
+  const activeMembership = await MembershipModel.findOne({
+    associatedUserId: purchaserUserId,
+    lifecycleState: ERP_LIFECYCLE_STATES.DONE,
+    isDuesPaid: true
+  });
+  if (!activeMembership) {
+    const error = new Error('This ticket tier requires an active, paid club membership.');
+    error.statusCode = 403;
+    error.errorCode = 'MEMBER_EXCLUSIVE_TIER_RESTRICTION';
+    throw error;
   }
+};
 
-  const existingTierTicketsCount = await TicketModel.countDocuments({
+const verifyTierCapacity = async (eventId, selectedTier, requestedQty) => {
+  const count = await TicketModel.countDocuments({
     associatedEventId: eventId,
     tierIdentifier: selectedTier.tierIdentifier,
     admissionState: { $ne: TICKET_ADMISSION_STATES.CANCELLED }
   });
-
-  if (existingTierTicketsCount + purchasePayload.ticketQuantity > selectedTier.maximumSeatLimit) {
-    const error = new Error(`Capacity exhausted for ${selectedTier.tierName}. Remaining seats: ${selectedTier.maximumSeatLimit - existingTierTicketsCount}`);
+  if (count + requestedQty > selectedTier.maximumSeatLimit) {
+    const error = new Error(`Capacity exhausted. Remaining: ${selectedTier.maximumSeatLimit - count}`);
     error.statusCode = 409;
     error.errorCode = 'SEAT_CAPACITY_EXHAUSTED';
     throw error;
   }
+};
 
-  const issuedTicketsArray = [];
-  const totalTransactionAmount = selectedTier.priceAmount * purchasePayload.ticketQuantity;
+export const purchaseTicketsWithQuotaLock = async (eventId, purchasePayload, purchaserUserId) => {
+  const targetEvent = await EventModel.findById(eventId);
+  if (!targetEvent) throw Object.assign(new Error('Event not found'), { statusCode: 404 });
 
-  for (let index = 0; index < purchasePayload.ticketQuantity; index++) {
-    const generatedTicketCode = await generateNextSequenceCode('TKT');
-    const qrPayloadString = JSON.stringify({
-      ticketCode: generatedTicketCode,
-      eventId: targetEvent._id.toString(),
-      eventTitle: targetEvent.eventTitle,
-      tier: selectedTier.tierName
-    });
+  await verifyDuplicateTicketBooking(eventId, purchaserUserId);
 
-    const issuedTicket = await TicketModel.create({
-      ticketTrackingCode: generatedTicketCode,
-      associatedEventId: targetEvent._id,
-      purchaserUserId,
-      tierIdentifier: selectedTier.tierIdentifier,
-      tierName: selectedTier.tierName,
-      unitPricePaid: selectedTier.priceAmount,
-      admissionState: TICKET_ADMISSION_STATES.ISSUED,
-      digitalQrPayload: qrPayloadString
-    });
-    issuedTicketsArray.push(issuedTicket);
+  const selectedTier = targetEvent.ticketTiers.find(
+    (t) => t.tierIdentifier === purchasePayload.ticketTierIdentifier.toUpperCase()
+  );
+  if (!selectedTier) throw Object.assign(new Error('Tier not available'), { statusCode: 400 });
+
+  await verifyMemberExclusiveTier(selectedTier, purchaserUserId);
+  await verifyTierCapacity(eventId, selectedTier, purchasePayload.ticketQuantity || 1);
+
+  const paymentMode = purchasePayload.paymentMode || (purchasePayload.paymentMethod === 'ONLINE_PAYMENT' ? 'ONLINE' : 'CASH');
+  const generatedTicketCode = await generateNextSequenceCode('TKT');
+
+  const createdTicket = await TicketModel.create({
+    ticketTrackingCode: generatedTicketCode,
+    associatedEventId: targetEvent._id,
+    purchaserUserId,
+    tierIdentifier: selectedTier.tierIdentifier,
+    tierName: selectedTier.tierName,
+    unitPricePaid: selectedTier.priceAmount,
+    approvalState: TICKET_APPROVAL_STATES.PENDING_APPROVAL,
+    admissionState: TICKET_ADMISSION_STATES.ISSUED,
+    digitalQrPayload: '',
+    paymentDetails: {
+      paymentMode,
+      transactionId: purchasePayload.transactionId || '',
+      paymentScreenshotUrl: purchasePayload.paymentScreenshotUrl || '',
+      submittedAt: new Date()
+    }
+  });
+
+  return { issuedTickets: [createdTicket], totalPaid: selectedTier.priceAmount };
+};
+
+const postTicketRevenueJournal = async (targetTicket, officerUserId) => {
+  const generatedJournalCode = await generateNextSequenceCode('JRN');
+  const debitAccount = targetTicket.paymentDetails?.paymentMode === 'CASH'
+    ? ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.PETTY_CASH_FLOAT
+    : ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.BANK_CAMPUS_ACCOUNT;
+
+  await postDoubleEntryJournalRecord({
+    journalEntryTrackingCode: generatedJournalCode,
+    sourceDocumentReference: targetTicket.associatedEventId?.eventTrackingCode || targetTicket.ticketTrackingCode,
+    transactionMemo: `Ticket payment confirmed for ${targetTicket.associatedEventId?.eventTitle} (${targetTicket.ticketTrackingCode})`,
+    postedByUserId: officerUserId,
+    journalLines: [
+      {
+        accountIdentifierCode: debitAccount,
+        debitAmountValue: targetTicket.unitPricePaid,
+        creditAmountValue: 0,
+        lineItemDescription: `Proceeds collected via ${targetTicket.paymentDetails?.paymentMode || 'CASH'}`
+      },
+      {
+        accountIdentifierCode: ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.INCOME_TICKET_SALES,
+        debitAmountValue: 0,
+        creditAmountValue: targetTicket.unitPricePaid,
+        lineItemDescription: `Ticket sales revenue for ${targetTicket.associatedEventId?.eventTitle}`
+      }
+    ]
+  });
+};
+
+export const approveTicketPurchase = async (ticketId, officerUserId) => {
+  const targetTicket = await TicketModel.findById(ticketId).populate('associatedEventId');
+  if (!targetTicket) throw Object.assign(new Error('Ticket not found'), { statusCode: 404 });
+  if (targetTicket.approvalState === TICKET_APPROVAL_STATES.CONFIRMED) return targetTicket;
+
+  const qrPayload = JSON.stringify({
+    ticketCode: targetTicket.ticketTrackingCode,
+    eventId: targetTicket.associatedEventId?._id?.toString(),
+    eventTitle: targetTicket.associatedEventId?.eventTitle,
+    tier: targetTicket.tierName
+  });
+
+  targetTicket.approvalState = TICKET_APPROVAL_STATES.CONFIRMED;
+  targetTicket.digitalQrPayload = qrPayload;
+  targetTicket.paymentDetails.approvedAt = new Date();
+  targetTicket.paymentDetails.approvedByUserId = officerUserId;
+  await targetTicket.save();
+
+  if (targetTicket.unitPricePaid > 0) {
+    await postTicketRevenueJournal(targetTicket, officerUserId);
   }
+  return targetTicket;
+};
 
-  if (totalTransactionAmount > 0) {
-    const generatedJournalCode = await generateNextSequenceCode('JRN');
-    const debitAccount = purchasePayload.paymentMethod === 'CASH_AT_DOOR'
-      ? ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.PETTY_CASH_FLOAT
-      : ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.BANK_CAMPUS_ACCOUNT;
-
-    await postDoubleEntryJournalRecord({
-      journalEntryTrackingCode: generatedJournalCode,
-      sourceDocumentReference: targetEvent.eventTrackingCode,
-      transactionMemo: `Ticket sales for ${targetEvent.eventTitle} (${purchasePayload.ticketQuantity}x ${selectedTier.tierName})`,
-      postedByUserId: purchaserUserId,
-      journalLines: [
-        {
-          accountIdentifierCode: debitAccount,
-          debitAmountValue: totalTransactionAmount,
-          creditAmountValue: 0,
-          lineItemDescription: `Proceeds collected via ${purchasePayload.paymentMethod}`
-        },
-        {
-          accountIdentifierCode: ERP_SYSTEM_PARAMETERS.CHART_OF_ACCOUNTS.INCOME_TICKET_SALES,
-          debitAmountValue: 0,
-          creditAmountValue: totalTransactionAmount,
-          lineItemDescription: `Ticket sales revenue for ${targetEvent.eventTitle}`
-        }
-      ]
-    });
-  }
-
-  console.log(`[Event Service]: Issued ${purchasePayload.ticketQuantity} tickets for ${targetEvent.eventTitle}`);
-  return { issuedTickets: issuedTicketsArray, totalPaid: totalTransactionAmount };
+export const getPendingTicketApprovals = async () => {
+  return await TicketModel.find({ approvalState: TICKET_APPROVAL_STATES.PENDING_APPROVAL })
+    .populate('purchaserUserId', 'fullName emailAddress studentIdentificationNumber')
+    .populate('associatedEventId', 'eventTitle eventTrackingCode startDateTime')
+    .sort({ createdAt: -1 });
 };
 
 export const validateDoorScannerCheckIn = async (ticketTrackingCode, scannerLocation, staffUserId) => {
@@ -144,23 +179,16 @@ export const validateDoorScannerCheckIn = async (ticketTrackingCode, scannerLoca
   }).populate('purchaserUserId', 'fullName emailAddress studentIdentificationNumber');
 
   if (!targetTicket) {
-    return {
-      isAdmitted: false,
-      validationVerdict: 'INVALID_TICKET',
-      message: 'Ticket tracking code does not exist in registry.'
-    };
+    return { isAdmitted: false, validationVerdict: 'INVALID_TICKET', message: 'Ticket does not exist.' };
   }
-
   if (targetTicket.isCheckedIn || targetTicket.admissionState === TICKET_ADMISSION_STATES.CHECKED_IN) {
-    console.warn(`[Door Scanner Warning]: Duplicate scan attempt for ${ticketTrackingCode}`);
     return {
       isAdmitted: false,
       validationVerdict: 'DUPLICATE_ENTRY_ATTEMPT',
-      message: `Already checked in at ${targetTicket.checkInTimestamp?.toLocaleTimeString()} at gate ${targetTicket.gateScannerLocation}. Entry denied.`,
+      message: `Already checked in at ${targetTicket.checkInTimestamp?.toLocaleTimeString()}.`,
       targetTicket
     };
   }
-
   targetTicket.isCheckedIn = true;
   targetTicket.admissionState = TICKET_ADMISSION_STATES.CHECKED_IN;
   targetTicket.checkInTimestamp = new Date();
@@ -168,7 +196,6 @@ export const validateDoorScannerCheckIn = async (ticketTrackingCode, scannerLoca
   targetTicket.gateScannerLocation = scannerLocation || 'MAIN_ENTRANCE_DOOR';
   await targetTicket.save();
 
-  console.log(`[Door Scanner]: Successful admission for ${ticketTrackingCode} (${targetTicket.purchaserUserId?.fullName})`);
   return {
     isAdmitted: true,
     validationVerdict: 'ADMISSION_GRANTED',
@@ -179,28 +206,20 @@ export const validateDoorScannerCheckIn = async (ticketTrackingCode, scannerLoca
 
 export const generateEventReconciliationSummary = async (eventId) => {
   const targetEvent = await EventModel.findById(eventId);
-  if (!targetEvent) {
-    const error = new Error('Event not found.');
-    error.statusCode = 404;
-    throw error;
-  }
+  if (!targetEvent) throw Object.assign(new Error('Event not found'), { statusCode: 404 });
 
-  const allTicketsForEvent = await TicketModel.find({ associatedEventId: eventId });
-  const totalTicketsIssued = allTicketsForEvent.length;
-  const totalAttendeesCheckedIn = allTicketsForEvent.filter((ticket) => ticket.isCheckedIn).length;
-  const totalGrossRevenue = allTicketsForEvent.reduce((sum, ticket) => sum + ticket.unitPricePaid, 0);
-  const attendanceYieldPercentage = totalTicketsIssued > 0
-    ? Math.round((totalAttendeesCheckedIn / totalTicketsIssued) * 100)
-    : 0;
+  const allTickets = await TicketModel.find({ associatedEventId: eventId });
+  const totalIssued = allTickets.length;
+  const checkedIn = allTickets.filter((t) => t.isCheckedIn).length;
+  const grossRev = allTickets.reduce((sum, t) => sum + t.unitPricePaid, 0);
 
   return {
     eventTrackingCode: targetEvent.eventTrackingCode,
     eventTitle: targetEvent.eventTitle,
     maximumCapacityLimit: targetEvent.maximumCapacityLimit,
-    totalTicketsIssued,
-    totalAttendeesCheckedIn,
-    totalGrossRevenue,
-    attendanceYieldPercentage
+    totalTicketsIssued: totalIssued,
+    totalAttendeesCheckedIn: checkedIn,
+    totalGrossRevenue: grossRev,
+    attendanceYieldPercentage: totalIssued > 0 ? Math.round((checkedIn / totalIssued) * 100) : 0
   };
 };
-

@@ -12,6 +12,7 @@ import {
   handleListProducts,
   handleCheckoutSalesOrder,
   handleListMyOrders,
+  handleListAllOrders,
   handleTransitionOrderState,
   handleListStockMovementJournal
 } from './merchandise.controller.js';
@@ -49,6 +50,13 @@ merchandiseRouter.get(
   handleListMyOrders
 );
 
+merchandiseRouter.get(
+  '/orders/all',
+  authenticateSessionToken,
+  authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS),
+  handleListAllOrders
+);
+
 merchandiseRouter.put(
   '/orders/:orderId/state',
   authenticateSessionToken,
@@ -58,9 +66,8 @@ merchandiseRouter.put(
 );
 
 merchandiseRouter.get(
-  '/stock-ledger',
+  '/stock-transfers',
   authenticateSessionToken,
   authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS),
   handleListStockMovementJournal
 );
-

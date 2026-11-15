@@ -73,6 +73,18 @@ export const handleListMyOrders = async (incomingHttpRequest, outgoingHttpRespon
   });
 };
 
+export const handleListAllOrders = async (incomingHttpRequest, outgoingHttpResponse) => {
+  const allOrders = await SalesOrderModel.find()
+    .sort({ createdAt: -1 })
+    .populate('customerUserId', 'fullName emailAddress studentIdentificationNumber');
+
+  return outgoingHttpResponse.status(200).json({
+    successIndicator: true,
+    totalOrdersCount: allOrders.length,
+    ordersList: allOrders
+  });
+};
+
 export const handleTransitionOrderState = async (incomingHttpRequest, outgoingHttpResponse) => {
   try {
     const orderId = incomingHttpRequest.params.orderId;
@@ -105,4 +117,3 @@ export const handleListStockMovementJournal = async (incomingHttpRequest, outgoi
     movementJournalEntries
   });
 };
-

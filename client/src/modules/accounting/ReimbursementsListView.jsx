@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { Landmark, FileText, Check, X, Plus, ExternalLink, Clock, ShieldCheck } from 'lucide-react';
 import { apiNetworkClient } from '../../services/apiNetworkClient.js';
 import { ControlPanelHeader } from '../../components/common/ControlPanelHeader.jsx';
+import { AccountingNavHeader } from '../../components/accounting/AccountingNavHeader.jsx';
 import { useSystemProcessing } from '../../context/SystemProcessingContext.jsx';
 import { useAuthentication } from '../../context/AuthenticationContext.jsx';
 
@@ -99,6 +100,7 @@ export const ReimbursementsListView = () => {
       className="flex flex-col h-full bg-white"
     >
       <ControlPanelHeader breadcrumbsArray={breadcrumbs} actionButtons={actionButtons} />
+      <AccountingNavHeader />
 
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse">

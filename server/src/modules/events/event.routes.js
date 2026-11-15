@@ -1,6 +1,6 @@
 /**
  * @FILE: event.routes.js
- * @RESPONSIBILITY: Express routes wiring event creation, public listings, ticket purchasing, and gate scanner to /api/v1/events.
+ * @RESPONSIBILITY: Express routes wiring event creation, public listings, ticket purchasing, ticket approvals, and gate scanner to /api/v1/events.
  * @DEPENDENCIES: express, event.controller.js, event.validation.js, schemaValidator.js, authenticationGate.js, rbacAuthorization.js.
  * @MODIFICATION_HOTSPOT: eventRouter endpoint bindings.
  * @AUTHOR: Garima Mittal
@@ -14,7 +14,9 @@ import {
   handleTicketPurchase,
   handleDoorScannerCheckIn,
   handleGetMyTickets,
-  handleEventReconciliation
+  handleEventReconciliation,
+  handleGetPendingTicketApprovals,
+  handleApproveTicketPurchase
 } from './event.controller.js';
 import {
   EventCreationSchema,
@@ -30,6 +32,20 @@ export const eventRouter = express.Router();
 eventRouter.get('/', handleListEvents);
 
 eventRouter.get('/my-tickets', authenticateSessionToken, handleGetMyTickets);
+
+eventRouter.get(
+  '/tickets/pending-approvals',
+  authenticateSessionToken,
+  authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS),
+  handleGetPendingTicketApprovals
+);
+
+eventRouter.post(
+  '/tickets/:ticketId/approve',
+  authenticateSessionToken,
+  authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS),
+  handleApproveTicketPurchase
+);
 
 eventRouter.get('/:eventId', handleGetEventById);
 
@@ -62,4 +78,3 @@ eventRouter.get(
   authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS),
   handleEventReconciliation
 );
-

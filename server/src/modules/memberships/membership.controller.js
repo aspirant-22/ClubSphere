@@ -58,11 +58,12 @@ export const handleCampusTableSignup = async (incomingHttpRequest, outgoingHttpR
 export const handleRecordDuesPayment = async (incomingHttpRequest, outgoingHttpResponse) => {
   try {
     const targetMembershipId = incomingHttpRequest.params.membershipId;
-    const officerUserId = incomingHttpRequest.authenticatedUser.userId;
+    const officer = incomingHttpRequest.authenticatedUser;
     const paymentResult = await processDuesPaymentAndPostLedger(
       targetMembershipId,
       incomingHttpRequest.body,
-      officerUserId
+      officer.userId,
+      officer
     );
 
     return outgoingHttpResponse.status(200).json({
