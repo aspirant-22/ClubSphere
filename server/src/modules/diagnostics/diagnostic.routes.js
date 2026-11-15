@@ -50,14 +50,28 @@ diagnosticRouter.use(authorizeRoleTiers(ERP_USER_ROLES.ADMIN));
 
 diagnosticRouter.get('/health', (incomingHttpRequest, outgoingHttpResponse) => {
   const dbConnectionState = mongoose.connection.readyState;
-  const dbStateMap = { 0: 'DISCONNECTED', 1: 'CONNECTED', 2: 'CONNECTING', 3: 'DISCONNECTING' };
+  const dbStateMap = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  const memoryUsage = process.memoryUsage();
+  const uptimeSeconds = Math.floor(process.uptime());
+  const dbStatus = dbStateMap[dbConnectionState] || 'disconnected';
 
   return outgoingHttpResponse.status(200).json({
     successIndicator: true,
+    data: {
+      uptime: uptimeSeconds,
+      serverUptimeSeconds: uptimeSeconds,
+      memory: {
+        heapTotal: memoryUsage.heapTotal,
+        heapUsed: memoryUsage.heapUsed,
+        rss: memoryUsage.rss
+      },
+      database: dbStatus,
+      databaseStatus: dbStatus.toUpperCase()
+    },
     telemetry: {
-      serverUptimeSeconds: Math.floor(process.uptime()),
-      nodeMemoryUsageBytes: process.memoryUsage(),
-      databaseStatus: dbStateMap[dbConnectionState] || 'UNKNOWN',
+      serverUptimeSeconds: uptimeSeconds,
+      nodeMemoryUsageBytes: memoryUsage,
+      databaseStatus: dbStatus.toUpperCase(),
       totalBufferedDiagnosticLogs: diagnosticLogRingBuffer.length,
       timestamp: new Date().toISOString()
     }
@@ -67,10 +81,16 @@ diagnosticRouter.get('/health', (incomingHttpRequest, outgoingHttpResponse) => {
 diagnosticRouter.get('/logs', (incomingHttpRequest, outgoingHttpResponse) => {
   const logLimit = parseInt(incomingHttpRequest.query.limit, 10) || 100;
   const recentLogsSlice = diagnosticLogRingBuffer.slice(-logLimit).reverse();
+  const formattedLogs = recentLogsSlice.map((l) => ({
+    timestamp: l.logTimestamp,
+    level: l.logLevel,
+    message: `[${l.sourceModule || 'SYS'}] ${l.messageText}`
+  }));
 
   return outgoingHttpResponse.status(200).json({
     successIndicator: true,
     totalLogsReturned: recentLogsSlice.length,
+    data: formattedLogs,
     diagnosticLogs: recentLogsSlice
   });
 });

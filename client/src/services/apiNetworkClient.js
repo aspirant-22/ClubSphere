@@ -16,7 +16,7 @@ export const registerOfflineAlertHandler = (handlerCallback) => {
 
 export const apiNetworkClient = axios.create({
   baseURL: '/api/v1',
-  timeout: 8000,
+  timeout: 15000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -33,10 +33,9 @@ apiNetworkClient.interceptors.response.use(
   },
   (networkError) => {
     const isTimeout = networkError.code === 'ECONNABORTED';
-    const isServerError = networkError.response && networkError.response.status >= 500;
-    const isNetworkDown = !networkError.response;
+    const isNetworkDown = !networkError.response && Boolean(networkError.request);
 
-    if (isTimeout || isServerError || isNetworkDown) {
+    if (isTimeout || isNetworkDown) {
       const fallbackAlertMessage = '⚠️ [ERP System Alert]: Cloud Node latency detected. Transitioning to fallback offline processing state.';
       console.warn(`[Network Gateway Alert]: ${fallbackAlertMessage}`);
       if (globalOfflineStatusListener) {

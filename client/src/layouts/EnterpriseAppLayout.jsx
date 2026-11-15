@@ -28,7 +28,7 @@ const PRIMARY_APP_MODULES = [
   { label: 'Events', icon: Calendar, path: '/events' },
   { label: 'Shop / POS', icon: ShoppingBag, path: '/merchandise' },
   { label: 'Activities', icon: CheckSquare, path: '/activities' },
-  { label: 'Accounting', icon: Landmark, path: '/accounting' },
+  { label: 'Accounting', icon: Landmark, path: '/accounting/ledger' },
   { label: 'Bulletins', icon: Radio, path: '/broadcasts' }
 ];
 

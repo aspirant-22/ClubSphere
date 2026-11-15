@@ -47,90 +47,58 @@ export const SequenceRegistryModel = mongoose.model(
 const PREFIX_COLLECTION_FIELD_MAP = {
   MEM: { collection: 'memberships', field: 'membershipSequenceCode' },
   EVT: { collection: 'events', field: 'eventTrackingCode' },
-  TKT: { collection: 'tickets', field: 'ticketSequenceCode' },
-  SO: { collection: 'sales_orders', field: 'salesOrderTrackingCode' },
-  STK: { collection: 'stock_movements', field: 'movementTrackingCode' },
-  ACT: { collection: 'activity_tasks', field: 'activityTrackingCode' },
-  EXP: { collection: 'reimbursement_claims', field: 'reimbursementTrackingCode' },
-  ANN: { collection: 'broadcast_bulletins', field: 'broadcastTrackingCode' },
+  TKT: { collection: 'tickets', field: 'ticketTrackingCode' },
+  SO: { collection: 'sales_orders', field: 'salesOrderSequenceCode' },
+  STK: { collection: 'stock_moves', field: 'movementTrackingCode' },
+  ACT: { collection: 'activities', field: 'activityTrackingCode' },
+  EXP: { collection: 'reimbursements', field: 'reimbursementTrackingCode' },
+  ANN: { collection: 'broadcasts', field: 'broadcastTrackingCode' },
   JRN: { collection: 'journal_entries', field: 'journalEntryTrackingCode' }
+};
+
+const scanHighestNumber = async (prefix, year) => {
+  const mapping = PREFIX_COLLECTION_FIELD_MAP[prefix];
+  if (!mapping || !mongoose.connection.db) return 0;
+  try {
+    const codeRegex = new RegExp(`^${prefix}/${year}/(\\d+)`);
+    const docs = await mongoose.connection.db
+      .collection(mapping.collection)
+      .find({ [mapping.field]: codeRegex }, { projection: { [mapping.field]: 1 } })
+      .toArray();
+    return docs.reduce((highest, doc) => {
+      const match = (doc[mapping.field] || '').match(codeRegex);
+      return match ? Math.max(highest, parseInt(match[1], 10)) : highest;
+    }, 0);
+  } catch (err) {
+    return 0;
+  }
+};
+
+const syncSequenceCounter = async (prefix, year, highestNum) => {
+  let doc = await SequenceRegistryModel.findOne({ sequencePrefixKey: prefix, sequenceYearValue: year });
+  if (!doc || doc.currentSequenceNumber < highestNum) {
+    doc = await SequenceRegistryModel.findOneAndUpdate(
+      { sequencePrefixKey: prefix, sequenceYearValue: year },
+      { $set: { currentSequenceNumber: highestNum, paddingDigitsCount: 4 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+  }
+  return SequenceRegistryModel.findOneAndUpdate(
+    { sequencePrefixKey: prefix, sequenceYearValue: year },
+    { $inc: { currentSequenceNumber: 1 } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
 };
 
 export const generateNextSequenceCode = async (sequencePrefixKey) => {
   const currentCalendarYear = new Date().getFullYear();
-  const normalizedPrefixKey = sequencePrefixKey.toUpperCase().trim();
-
-  // Find the highest existing sequence number in the relevant business collection
-  let highestExistingNumber = 0;
-  const mapping = PREFIX_COLLECTION_FIELD_MAP[normalizedPrefixKey];
-
-  if (mapping && mongoose.connection.db) {
-    try {
-      const codeRegex = new RegExp(`^${normalizedPrefixKey}/${currentCalendarYear}/(\\d+)`);
-      const docs = await mongoose.connection.db
-        .collection(mapping.collection)
-        .find({ [mapping.field]: codeRegex }, { projection: { [mapping.field]: 1 } })
-        .toArray();
-
-      for (const doc of docs) {
-        const val = doc[mapping.field];
-        if (val) {
-          const m = val.match(codeRegex);
-          if (m && m[1]) {
-            const num = parseInt(m[1], 10);
-            if (num > highestExistingNumber) {
-              highestExistingNumber = num;
-            }
-          }
-        }
-      }
-    } catch (scanErr) {
-      console.warn(`[Sequence Registry]: Error scanning ${mapping.collection}:`, scanErr.message);
-    }
-  }
-
-  // Atomically find or create the sequence counter
-  let sequenceDoc = await SequenceRegistryModel.findOne({
-    sequencePrefixKey: normalizedPrefixKey,
-    sequenceYearValue: currentCalendarYear
-  });
-
-  if (!sequenceDoc) {
-    // If not found, create or set to at least highestExistingNumber
-    sequenceDoc = await SequenceRegistryModel.findOneAndUpdate(
-      { sequencePrefixKey: normalizedPrefixKey, sequenceYearValue: currentCalendarYear },
-      {
-        $setOnInsert: {
-          currentSequenceNumber: highestExistingNumber,
-          paddingDigitsCount: 4
-        }
-      },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-  }
-
-  // If the stored counter is behind what actually exists in the collection, bump it
-  if (sequenceDoc.currentSequenceNumber < highestExistingNumber) {
-    sequenceDoc = await SequenceRegistryModel.findOneAndUpdate(
-      { sequencePrefixKey: normalizedPrefixKey, sequenceYearValue: currentCalendarYear },
-      { $set: { currentSequenceNumber: highestExistingNumber } },
-      { new: true }
-    );
-  }
-
-  // Increment and obtain next number
-  const updatedSequenceRecord = await SequenceRegistryModel.findOneAndUpdate(
-    { sequencePrefixKey: normalizedPrefixKey, sequenceYearValue: currentCalendarYear },
-    { $inc: { currentSequenceNumber: 1 } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
-
-  const sequentialNumberString = String(
-    updatedSequenceRecord.currentSequenceNumber
-  ).padStart(updatedSequenceRecord.paddingDigitsCount, '0');
-
-  const generatedCorporateCode = `${normalizedPrefixKey}/${currentCalendarYear}/${sequentialNumberString}`;
-  console.log(`[Sequence Registry]: Generated corporate identifier: ${generatedCorporateCode}`);
-  return generatedCorporateCode;
+  const normalizedPrefix = sequencePrefixKey.toUpperCase().trim();
+  const highestNum = await scanHighestNumber(normalizedPrefix, currentCalendarYear);
+  const updated = await syncSequenceCounter(normalizedPrefix, currentCalendarYear, highestNum);
+  const padDigits = updated.paddingDigitsCount || 4;
+  const numStr = String(updated.currentSequenceNumber).padStart(padDigits, '0');
+  const generatedCode = `${normalizedPrefix}/${currentCalendarYear}/${numStr}`;
+  console.log(`[Sequence Registry]: Generated corporate identifier: ${generatedCode}`);
+  return generatedCode;
 };
 

@@ -38,7 +38,7 @@ const DEMO_PERSONAS = [
     roleName: 'Active Member',
     holderName: 'Student Member 1',
     email: 'member1@skyline.edu',
-    badge: 'CUSTOMER',
+    badge: 'MEMBER',
     badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200'
   }
 ];

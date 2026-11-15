@@ -65,6 +65,19 @@ export const BroadcastsView = () => {
   const handleAcknowledge = async (broadcastId) => {
     try {
       await apiNetworkClient.post(`/broadcasts/${broadcastId}/ack`, {});
+      setBulletins((prev) =>
+        prev.map((b) =>
+          b._id === broadcastId
+            ? {
+                ...b,
+                readReceiptsLedger: [
+                  ...(b.readReceiptsLedger || []),
+                  { readerUserId: currentUser?.userId || currentUser?._id }
+                ]
+              }
+            : b
+        )
+      );
       await loadBulletins();
     } catch (err) {
       console.error('Failed to acknowledge:', err);
@@ -131,13 +144,22 @@ export const BroadcastsView = () => {
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-2xs text-slate-500">
                 <span>Published by: <strong className="text-slate-700">{bulletin.senderUserId?.fullName || 'Officer'}</strong></span>
-                <button
-                  onClick={() => handleAcknowledge(bulletin._id)}
-                  className="flex items-center space-x-1 text-odoo-primary hover:text-odoo-primaryHover font-bold"
-                >
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  <span>Acknowledge Read</span>
-                </button>
+                {bulletin.readReceiptsLedger?.some(
+                  (r) => (r.readerUserId?._id || r.readerUserId || r) === (currentUser?.userId || currentUser?._id)
+                ) ? (
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                    <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Acknowledged</span>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleAcknowledge(bulletin._id)}
+                    className="flex items-center space-x-1 text-odoo-primary hover:text-odoo-primaryHover font-bold"
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    <span>Acknowledge Read</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}

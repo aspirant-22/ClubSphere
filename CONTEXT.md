@@ -74,7 +74,7 @@
   - Club President (Admin): `president@skyline.edu` / `AdminPass123!` (or 1-click persona switch)
   - Club Treasurer (Admin): `treasurer@skyline.edu` / `TreasurerPass123!`
   - Operations Lead (Operations): `operations@skyline.edu` / `OpsPass123!`
-  - Active Member (Customer / Member): `member1@skyline.edu` / `MemberPass123!`
+  - Active Member (Member): `member1@skyline.edu` / `MemberPass123!`
 
 ## 5. Context Lookup Protocol
 > **Protocol Rule**: Read ONLY `CONTEXT.md` first for architectural context. Never scan full directories or `docs/` unless debugging a specific file.
@@ -82,6 +82,7 @@
 ## 6. Self-Registration & Role Elevation Log (2026-11-16)
 - **Student Self-Registration**: Public `/register` (`RegisterView.jsx`) route enabling any student to register with Name, Email, Student ID, and Password; accounts default to `CUSTOMER` role tier.
 - **Role Elevation**: When membership dues are confirmed via `/api/v1/memberships/:membershipId/pay-dues`, the user account is automatically elevated from `CUSTOMER` to `MEMBER` tier in MongoDB, immediately unlocking active member privileges and digital ID card.
-- **Admin Elevation Trigger**: In `MembershipListView.jsx`, Admins/Operations have a 1-click **"Confirm Dues & Elevate"** action button on pending records. Customers also have an **"Apply / Pay Dues"** modal and status alert banner.
+- **Role-Based Membership Views**: In `MembershipListView.jsx`, Customers see an Applicant Portal with pending review status or apply button; Active Members see their personal Active Membership Card with QR view; Admins/Operations see the full directory table with "Confirm Dues & Elevate" actions.
+- **Sequence Registry Self-Healing**: Dynamic scan and sync in `sequenceRegistry.js` and counter initialization in `seedDatabase.js` prevent duplicate key errors (`E11000`).
 
 

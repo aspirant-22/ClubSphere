@@ -107,6 +107,7 @@ export default function AppRouter() {
         <Route path="/activities" element={<VolunteerKanbanView />} />
 
         {/* Accounting */}
+        <Route path="/accounting" element={<Navigate to="/accounting/reimbursements" replace />} />
         <Route path="/accounting/ledger" element={
           <ProtectedRoute allowedRoles={[ROLE.ADMIN]}>
             <GeneralLedgerView />

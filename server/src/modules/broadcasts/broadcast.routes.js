@@ -47,3 +47,15 @@ broadcastRouter.post(
   handleAcknowledgeReadReceipt
 );
 
+broadcastRouter.post(
+  '/:broadcastId/read',
+  authenticateSessionToken,
+  handleAcknowledgeReadReceipt
+);
+
+broadcastRouter.post(
+  '/:broadcastId/acknowledge',
+  authenticateSessionToken,
+  handleAcknowledgeReadReceipt
+);
+

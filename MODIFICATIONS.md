@@ -141,6 +141,16 @@
   - Hardened `handleFetchMyMembershipCard` in `membership.controller.js` to reject token generation with `403 DUES_PAYMENT_PENDING` if dues are unpaid.
   - Prevented duplicate membership records in `membership.service.js` across both online application and campus table sign-ups, throwing clean `400 DUPLICATE_MEMBERSHIP_APPLICATION` error if an active or pending membership already exists.
   - Updated `seedDatabase.js` to ensure seeded pending applicants retain `CUSTOMER` role until dues are paid and elevated to `MEMBER`.
+- **Entry 024 - Sequence Desync Fix, Role Views, Diagnostics, and Reliability Hardening:**
+  - Synchronized sequence counter values in `seedDatabase.js` via `findOneAndUpdate` upsert for all prefixes, and aligned collection field mappings in `sequenceRegistry.js`.
+  - Added self-healing scanning in `sequenceRegistry.js` preventing `E11000` duplicate key collisions.
+  - Redesigned `MembershipListView.jsx` with distinct role views: Customer sees Applicant review status / apply modal; Active Member sees their Membership Card with QR modal button; Admin/Operations sees full management table.
+  - Removed "New Table Sign-up" action button for Executives and fixed Active Member alert banner condition.
+  - Corrected sidebar Accounting navigation link in `EnterpriseAppLayout.jsx` and added fallback in `AppRouter.jsx`.
+  - Enabled read-receipt acknowledgment persistence and immediate UI badge update to "Acknowledged" in `BroadcastsView.jsx` and `broadcast.routes.js`.
+  - Aligned `/api/v1/diagnostics/health` and `/api/v1/diagnostics/logs` payload structures with `SystemLogsView.jsx` telemetry metrics.
+  - Configured `apiNetworkClient.js` with 15000ms timeout and eliminated false offline banners on standard API error codes.
+
 
 
 

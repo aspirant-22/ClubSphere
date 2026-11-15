@@ -422,7 +422,7 @@ const seedVolunteerKanbanTasks = async (adminUser, operationsLead, createdStuden
   return { tasks };
 };
 
-const seedReimbursementsAndBroadcasts = async (adminUser, treasurerUser, createdStudents) => {
+const seedReimbursementsAndBroadcasts = async (adminUser, treasurerUser, createdStudents, journalEntries) => {
   console.log('[Seed Engine]: Seeding volunteer expense reimbursements and broadcasts...');
   const reimbursements = [];
 
@@ -486,8 +486,8 @@ const seedReimbursementsAndBroadcasts = async (adminUser, treasurerUser, created
     reimbursements.push(claim);
 
     if (sc.status === ERP_LIFECYCLE_STATES.DONE) {
-      await JournalEntryModel.create({
-        journalEntryTrackingCode: `JRN/2026/${String(50 + i).padStart(4, '0')}`,
+      const expJournal = await JournalEntryModel.create({
+        journalEntryTrackingCode: `JRN/2026/${String(journalEntries.length + 1).padStart(4, '0')}`,
         sourceDocumentReference: claimCode,
         transactionMemo: `Expense reimbursement for ${student.fullName} (${sc.cat})`,
         totalTransactionAmount: sc.amt,
@@ -507,6 +507,7 @@ const seedReimbursementsAndBroadcasts = async (adminUser, treasurerUser, created
           }
         ]
       });
+      journalEntries.push(expJournal);
     }
   }
 
@@ -572,7 +573,7 @@ export const runMasterDatabaseSeeding = async () => {
     const { galaEvent, tickets } = await seedEventsAndTickets(adminUser, operationsLead, createdStudents);
     const { navyHoodie, crewneckTee, salesOrders, stockMoves } = await seedMerchandiseAndStock(adminUser, createdStudents);
     const { tasks } = await seedVolunteerKanbanTasks(adminUser, operationsLead, createdStudents);
-    const { reimbursements, seededBroadcasts } = await seedReimbursementsAndBroadcasts(adminUser, treasurerUser, createdStudents);
+    const { reimbursements, seededBroadcasts } = await seedReimbursementsAndBroadcasts(adminUser, treasurerUser, createdStudents, journalEntries);
 
     // Initialize sequence registry counters to ensure new records start after seeded records
     const sequenceInitRecords = [
@@ -588,12 +589,11 @@ export const runMasterDatabaseSeeding = async () => {
     ];
 
     for (const seq of sequenceInitRecords) {
-      await SequenceRegistryModel.create({
-        sequencePrefixKey: seq.sequencePrefixKey,
-        sequenceYearValue: 2026,
-        currentSequenceNumber: seq.currentSequenceNumber,
-        paddingDigitsCount: 4
-      });
+      await SequenceRegistryModel.findOneAndUpdate(
+        { sequencePrefixKey: seq.sequencePrefixKey, sequenceYearValue: 2026 },
+        { $set: { currentSequenceNumber: seq.currentSequenceNumber, paddingDigitsCount: 4 } },
+        { upsert: true }
+      );
     }
 
     const totalRecordsCreated =
