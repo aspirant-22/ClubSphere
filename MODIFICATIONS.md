@@ -127,4 +127,13 @@
   - Integrated `auditLogger` and `globalErrorHandler` into `server/src/server.js`, and wired `SocketNotificationProvider` and `ProcessingOverlay` into `client/src/App.jsx`.
   - Configured `client/src/routes/AppRouter.jsx` to mount `/login` within `PublicPortalLayout` and fixed path imports for `EnterpriseAppLayout` and `apiNetworkClient`.
   - Synchronized `ARCHITECTURE.md` and `MODIFICATIONS.md` to reflect 100% parity across all repository files.
+- **Entry 022 - Student Self-Registration as CUSTOMER & Admin Role Elevation to MEMBER:**
+  - Added `ERP_USER_ROLES.MEMBER` to RBAC matrix in `server/src/middleware/rbacAuthorization.js` and validation in `server/src/modules/auth/auth.validation.js`.
+  - Ensured student self-registration defaults to `CUSTOMER` tier in `server/src/modules/auth/auth.service.js`.
+  - Implemented automatic user role elevation from `CUSTOMER` to `MEMBER` upon dues confirmation in `server/src/modules/memberships/membership.service.js`.
+  - Opened `/api/v1/memberships` listing endpoint to `CUSTOMER` and `MEMBER` roles so applicants can track application and dues statuses.
+  - Built `RegisterView.jsx` and added `/register` route in `AppRouter.jsx`, with navigation links between Login and Register views.
+  - Implemented `MembershipApplyModal.jsx` and integrated customer application status banner and 1-click **"Confirm Dues & Elevate"** action button in `MembershipListView.jsx`.
+  - Preserved `< 25` lines per function rule and `@AUTHOR: Garima Mittal` header across all affected files.
+
 

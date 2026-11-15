@@ -21,8 +21,10 @@ export const Navbar = () => {
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'OPERATIONS':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'CUSTOMER':
+      case 'MEMBER':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'CUSTOMER':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
       default:
         return 'bg-slate-100 text-slate-800 border-slate-200';
     }

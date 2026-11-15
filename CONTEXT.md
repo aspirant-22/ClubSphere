@@ -9,7 +9,7 @@
 - **Double-Entry Ledger Invariant**: Immutable journal entries (`journal_entries`). Every entry strictly enforces $\sum \text{Debits} \equiv \sum \text{Credits}$ ($|\sum D - \sum C| < 0.001$). Stock moves (`stock_moves`) enforce source ➔ destination physical double-entry location tracking.
 
 ## 2. Database Models & Key Fields
-- `UserModel` (`users`): `userAccountFullName`, `emailAddress`, `hashedUserCredential`, `userRoleTier` (`admin`|`operations`|`member`), `memberAffiliationProfileRef`, `lastLoginTimestamp`.
+- `UserModel` (`users`): `userAccountFullName`, `emailAddress`, `hashedUserCredential`, `userRoleTier` (`ADMIN`|`OPERATIONS`|`MEMBER`|`CUSTOMER`|`PUBLIC`), `memberAffiliationProfileRef`, `lastLoginTimestamp`.
 - `SequenceRegistryModel` (`ir_sequences`): `sequencePrefixKey` (`MEM`|`TKT`|`SO`|`EXP`|`JRN`|`ACT`|`ANN`|`EVT`|`STK`), `sequenceYearValue`, `currentSequenceNumber`, `paddingDigitsCount`.
 - `MembershipModel` (`memberships`, prefix `MEM`): `membershipCorporateCode` (`MEM/2026/XXXX`), `userProfileRef`, `studentIdNumber`, `tierPlan` (`standard`|`premium`|`alumni`), `duesPaymentStatus` (`unpaid`|`paid`), `lifecycleState` (`Draft`|`Waiting`|`Ready`|`Done`), `qrValidationTokenKey`, `activeDuesExpirationDate`.
 - `EventModel` (`events`, prefix `EVT`): `eventCorporateCode`, `eventName`, `totalCapacityLimit`, `bookedSeatCount`, `ticketPricingTiers` (`[{tierName, priceAmount, allocatedCapacity, remainingQuantity}]`), `lifecycleState` (`Draft`|`Waiting`|`Ready`|`Done`|`Cancelled`), `eventStartDateTime`.
@@ -66,7 +66,7 @@
   - `NavigationPaletteContext` (`useNavigationPalette`): `Ctrl+K` / `Cmd+K` command palette modal, `isPaletteVisible`, `paletteQuery`.
 - **Global Custom Hooks**: `useAuthentication()`, `useSystemProcessing()`, `useSocketNotifications()`, `useNavigationPalette()`.
 - **Exact `AppRouter.jsx` Route Paths**:
-  - Public: `/login` (`LoginView`), `/` (`RootRedirect` ➔ `/memberships` or `/login`).
+  - Public: `/login` (`LoginView`), `/register` (`RegisterView`), `/` (`RootRedirect` ➔ `/memberships` or `/login`).
   - Protected (All Roles): `/memberships` (`MembershipListView`), `/events` (`EventListView`), `/merchandise` (`MerchandiseCatalogView`), `/activities` (`VolunteerKanbanView`), `/accounting/reimbursements` (`ReimbursementsListView`), `/broadcasts` (`BroadcastsView`).
   - Protected (`admin`, `operations`): `/events/scanner` (`DoorScannerView`), `/merchandise/stock-ledger` & `/merchandise/ledger` (`StockLedgerView`), `/accounting/report` & `/accounting/reports` (`FinancialReportView`).
   - Protected (`admin` only): `/accounting/ledger` (`GeneralLedgerView`), `/admin/system-logs` (`SystemLogsView`).
@@ -78,4 +78,10 @@
 
 ## 5. Context Lookup Protocol
 > **Protocol Rule**: Read ONLY `CONTEXT.md` first for architectural context. Never scan full directories or `docs/` unless debugging a specific file.
+
+## 6. Self-Registration & Role Elevation Log (2026-11-16)
+- **Student Self-Registration**: Public `/register` (`RegisterView.jsx`) route enabling any student to register with Name, Email, Student ID, and Password; accounts default to `CUSTOMER` role tier.
+- **Role Elevation**: When membership dues are confirmed via `/api/v1/memberships/:membershipId/pay-dues`, the user account is automatically elevated from `CUSTOMER` to `MEMBER` tier in MongoDB, immediately unlocking active member privileges and digital ID card.
+- **Admin Elevation Trigger**: In `MembershipListView.jsx`, Admins/Operations have a 1-click **"Confirm Dues & Elevate"** action button on pending records. Customers also have an **"Apply / Pay Dues"** modal and status alert banner.
+
 

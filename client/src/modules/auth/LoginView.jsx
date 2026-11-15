@@ -7,8 +7,8 @@
  */
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Layers, Shield, UserCheck, KeyRound, Sparkles } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Layers, Shield, UserCheck, KeyRound, Sparkles, UserPlus } from 'lucide-react';
 import { useAuthentication } from '../../context/AuthenticationContext.jsx';
 import { useSystemProcessing } from '../../context/SystemProcessingContext.jsx';
 
@@ -122,6 +122,16 @@ export const LoginView = () => {
             Sign In to Workspace
           </button>
         </form>
+
+        <div className="text-center pt-2">
+          <Link
+            to="/register"
+            className="inline-flex items-center space-x-1.5 text-xs text-odoo-primary hover:underline font-semibold"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>New Student? Create an Account</span>
+          </Link>
+        </div>
 
         <div className="pt-4 border-t border-slate-200">
           <div className="flex items-center space-x-1.5 mb-3 text-slate-700">

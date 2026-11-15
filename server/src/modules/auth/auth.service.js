@@ -47,7 +47,7 @@ export const registerNewStudentAccount = async (registrationPayload) => {
     emailAddress: registrationPayload.emailAddress.toLowerCase(),
     passwordCredentialHash: registrationPayload.passwordCredential,
     phoneNumber: registrationPayload.phoneNumber,
-    userRoleTier: registrationPayload.userRoleTier || ERP_USER_ROLES.CUSTOMER
+    userRoleTier: ERP_USER_ROLES.CUSTOMER
   });
 
   console.log(`[Auth Service]: Successfully registered student account: ${createdUserRecord.emailAddress}`);

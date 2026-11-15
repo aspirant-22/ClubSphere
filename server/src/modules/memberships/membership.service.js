@@ -68,6 +68,11 @@ export const applyForNewMembership = async (applicantUserId, applicationData) =>
   return createdMembership;
 };
 
+const elevateUserRoleToMember = async (userId) => {
+  await UserModel.findByIdAndUpdate(userId, { userRoleTier: ERP_USER_ROLES.MEMBER });
+  console.log(`[Membership Service]: Elevating user ${userId} to active MEMBER tier`);
+};
+
 export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymentData, officerUserId) => {
   const targetMembership = await MembershipModel.findById(targetMembershipId);
   if (!targetMembership) {
@@ -91,6 +96,8 @@ export const processDuesPaymentAndPostLedger = async (targetMembershipId, paymen
   targetMembership.membershipExpirationDate = membershipExpiryCalendarDate;
   targetMembership.updatedByUserId = officerUserId;
   await targetMembership.save();
+
+  await elevateUserRoleToMember(targetMembership.associatedUserId);
 
   const generatedJournalCode = await generateNextSequenceCode('JRN');
   const debitAccountTarget = paymentData.paymentMethod === 'CASH_PAYMENT'

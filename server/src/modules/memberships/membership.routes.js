@@ -31,7 +31,7 @@ membershipRouter.use(authenticateSessionToken);
 
 membershipRouter.get(
   '/',
-  authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS),
+  authorizeRoleTiers(ERP_USER_ROLES.ADMIN, ERP_USER_ROLES.OPERATIONS, ERP_USER_ROLES.CUSTOMER, ERP_USER_ROLES.MEMBER),
   handleListAllMemberships
 );
 

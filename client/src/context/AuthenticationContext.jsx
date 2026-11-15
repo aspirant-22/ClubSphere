@@ -43,6 +43,14 @@ export const AuthenticationProvider = ({ children }) => {
     return response.data;
   };
 
+  const registerUserWithCredentials = async (registrationPayload) => {
+    const response = await apiNetworkClient.post('/auth/register', registrationPayload);
+    if (response.data?.successIndicator) {
+      await hydrateUserSession();
+    }
+    return response.data;
+  };
+
   const logoutCurrentSession = async () => {
     try {
       await apiNetworkClient.post('/auth/logout');
@@ -64,6 +72,7 @@ export const AuthenticationProvider = ({ children }) => {
     isAuthenticated: Boolean(currentUser),
     isAuthResolving,
     loginUserWithCredentials,
+    registerUserWithCredentials,
     logoutCurrentSession,
     hydrateUserSession,
     isRole,

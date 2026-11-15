@@ -18,6 +18,7 @@ export const UserRegistrationSchema = z.object({
   userRoleTier: z.enum([
     ERP_USER_ROLES.ADMIN,
     ERP_USER_ROLES.OPERATIONS,
+    ERP_USER_ROLES.MEMBER,
     ERP_USER_ROLES.CUSTOMER,
     ERP_USER_ROLES.PUBLIC
   ]).optional()

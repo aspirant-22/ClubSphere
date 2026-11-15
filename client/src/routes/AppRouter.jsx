@@ -11,6 +11,7 @@ import { useAuthentication } from '../context/AuthenticationContext.jsx';
 
 /* ─── Lazy page imports ─────────────────────────────────────── */
 import { LoginView }                from '../modules/auth/LoginView.jsx';
+import { RegisterView }             from '../modules/auth/RegisterView.jsx';
 import { EnterpriseAppLayout }      from '../layouts/EnterpriseAppLayout.jsx';
 import { PublicPortalLayout }        from '../layouts/PublicPortalLayout.jsx';
 
@@ -32,7 +33,7 @@ import { BroadcastsView }           from '../modules/broadcasts/BroadcastsView.j
 import SystemLogsView               from '../modules/diagnostics/SystemLogsView.jsx';
 
 /* ─── Role constants ────────────────────────────────────────── */
-const ROLE = { ADMIN: 'ADMIN', OPERATIONS: 'OPERATIONS', CUSTOMER: 'CUSTOMER' };
+const ROLE = { ADMIN: 'ADMIN', OPERATIONS: 'OPERATIONS', MEMBER: 'MEMBER', CUSTOMER: 'CUSTOMER' };
 
 /* ─── ProtectedRoute ────────────────────────────────────────── */
 function ProtectedRoute({ children, allowedRoles }) {
@@ -70,6 +71,7 @@ export default function AppRouter() {
       {/* Public */}
       <Route element={<PublicPortalLayout />}>
         <Route path="/login" element={<LoginView />} />
+        <Route path="/register" element={<RegisterView />} />
       </Route>
 
       {/* Root redirect */}

@@ -1,7 +1,7 @@
 /**
  * @FILE: MembershipListView.jsx
- * @RESPONSIBILITY: Dense Odoo multi-column member directory with tier badges, dues filters, and QR inspection triggers.
- * @DEPENDENCIES: react, lucide-react, apiNetworkClient.js, ControlPanelHeader.jsx, MemberCardModal.jsx, TableSignupModal.jsx, AuthenticationContext.jsx.
+ * @RESPONSIBILITY: Dense Odoo multi-column member directory with tier badges, dues filters, QR inspection triggers, and role elevation actions.
+ * @DEPENDENCIES: react, lucide-react, apiNetworkClient.js, ControlPanelHeader.jsx, MemberCardModal.jsx, TableSignupModal.jsx, MembershipApplyModal.jsx, AuthenticationContext.jsx, SystemProcessingContext.jsx.
  * @MODIFICATION_HOTSPOT: Table filtering and dues action triggers.
  * @AUTHOR: Garima Mittal
  */
@@ -15,13 +15,17 @@ import {
   CheckCircle,
   Clock,
   Filter,
-  DollarSign
+  DollarSign,
+  UserCheck,
+  Award
 } from 'lucide-react';
 import { apiNetworkClient } from '../../services/apiNetworkClient.js';
 import { ControlPanelHeader } from '../../components/common/ControlPanelHeader.jsx';
 import { MemberCardModal } from './MemberCardModal.jsx';
 import { TableSignupModal } from './TableSignupModal.jsx';
+import { MembershipApplyModal } from './MembershipApplyModal.jsx';
 import { useAuthentication } from '../../context/AuthenticationContext.jsx';
+import { useSystemProcessing } from '../../context/SystemProcessingContext.jsx';
 
 export const MembershipListView = () => {
   const [memberships, setMemberships] = useState([]);
@@ -30,8 +34,10 @@ export const MembershipListView = () => {
   const [tierFilter, setTierFilter] = useState('ALL');
   const [selectedMemberForCard, setSelectedMemberForCard] = useState(null);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { currentUser, isAdminOrOperations } = useAuthentication();
+  const { currentUser, isAdminOrOperations, hydrateUserSession } = useAuthentication();
+  const { runWithProcessingLock } = useSystemProcessing();
 
   const loadMembershipsData = async () => {
     setIsLoading(true);
@@ -51,6 +57,18 @@ export const MembershipListView = () => {
   useEffect(() => {
     loadMembershipsData();
   }, []);
+
+  const handleElevateToMember = async (membershipRecord) => {
+    await runWithProcessingLock(async () => {
+      await apiNetworkClient.post(`/memberships/${membershipRecord._id}/pay-dues`, {
+        paymentMethod: 'CASH_PAYMENT',
+        paymentReferenceIdentifier: `ELEVATE_CASH_${membershipRecord.membershipSequenceCode}`,
+        paidAmount: membershipRecord.duesAmountPayable || 500
+      });
+      await loadMembershipsData();
+      await hydrateUserSession();
+    }, 'Confirming dues & elevating student to Member...');
+  };
 
   useEffect(() => {
     let result = memberships;
@@ -75,8 +93,22 @@ export const MembershipListView = () => {
     { label: 'Directory' }
   ];
 
+  const userMembership = memberships.find(
+    (m) => (m.associatedUserId?._id || m.associatedUserId) === currentUser?.userId ||
+           (m.associatedUserId?._id || m.associatedUserId) === currentUser?._id
+  );
+
   const actionButtons = (
     <div className="flex items-center space-x-2">
+      {currentUser?.userRoleTier === 'CUSTOMER' && !userMembership && (
+        <button
+          onClick={() => setIsApplyModalOpen(true)}
+          className="btn-accent-action flex items-center space-x-1"
+        >
+          <Award className="w-3.5 h-3.5" />
+          <span>Apply for Membership</span>
+        </button>
+      )}
       {isAdminOrOperations() && (
         <button
           onClick={() => setIsSignupModalOpen(true)}
@@ -96,6 +128,30 @@ export const MembershipListView = () => {
       className="flex flex-col h-full bg-white"
     >
       <ControlPanelHeader breadcrumbsArray={breadcrumbs} actionButtons={actionButtons} />
+
+      {/* Customer Status Banner if Customer */}
+      {currentUser?.userRoleTier === 'CUSTOMER' && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between text-xs text-amber-900">
+          <div className="flex items-center space-x-2">
+            <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>Customer Tier Account:</strong> {userMembership ? (
+                <>Your application (<strong>{userMembership.membershipSequenceCode}</strong>) is currently <strong>WAITING</strong> dues payment confirmation by an Admin/Operations officer.</>
+              ) : (
+                <>You have standard guest access. Submit your membership application to unlock member discounts and your digital QR ID card!</>
+              )}
+            </span>
+          </div>
+          {!userMembership && (
+            <button
+              onClick={() => setIsApplyModalOpen(true)}
+              className="px-2.5 py-1 text-2xs font-bold uppercase rounded bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition-colors"
+            >
+              Apply / Pay Dues
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Filter Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-odoo-border text-xs">
@@ -125,7 +181,7 @@ export const MembershipListView = () => {
           </div>
         </div>
         <div className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
-          Total Members: {filteredMemberships.length}
+          Total Records: {filteredMemberships.length}
         </div>
       </div>
 
@@ -141,7 +197,7 @@ export const MembershipListView = () => {
               <th className="table-dense-header">Tier</th>
               <th className="table-dense-header">Dues Status</th>
               <th className="table-dense-header">Valid Thru</th>
-              <th className="table-dense-header text-right">Card</th>
+              <th className="table-dense-header text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -190,13 +246,25 @@ export const MembershipListView = () => {
                     {m.membershipExpirationDate ? new Date(m.membershipExpirationDate).toLocaleDateString() : 'Pending Dues'}
                   </td>
                   <td className="table-dense-cell text-right">
-                    <button
-                      onClick={() => setSelectedMemberForCard(m)}
-                      className="p-1 text-slate-400 hover:text-odoo-primary hover:bg-slate-100 rounded transition-colors"
-                      title="Inspect Member QR Card"
-                    >
-                      <QrCode className="w-4 h-4" />
-                    </button>
+                    <div className="inline-flex items-center space-x-1.5">
+                      {isAdminOrOperations() && !m.isDuesPaid && (
+                        <button
+                          onClick={() => handleElevateToMember(m)}
+                          className="px-2 py-0.5 text-2xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded shadow-xs inline-flex items-center space-x-1 transition-colors"
+                          title="Confirm Dues & Elevate to Member"
+                        >
+                          <UserCheck className="w-3 h-3" />
+                          <span>Confirm Dues & Elevate</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setSelectedMemberForCard(m)}
+                        className="p-1 text-slate-400 hover:text-odoo-primary hover:bg-slate-100 rounded transition-colors"
+                        title="Inspect Member QR Card"
+                      >
+                        <QrCode className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -214,6 +282,12 @@ export const MembershipListView = () => {
         isOpen={isSignupModalOpen}
         onClose={() => setIsSignupModalOpen(false)}
         onSignupSuccess={() => loadMembershipsData()}
+      />
+
+      <MembershipApplyModal
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        onApplySuccess={() => loadMembershipsData()}
       />
     </div>
   );
