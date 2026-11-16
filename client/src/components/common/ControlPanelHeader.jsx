@@ -46,7 +46,25 @@ export const ControlPanelHeader = ({
 
       <div className="flex items-center space-x-2 py-1">
         {auxiliaryWidget}
-        {actionButtons}
+        {Array.isArray(actionButtons)
+          ? actionButtons.map((btn, idx) => {
+              if (React.isValidElement(btn)) return btn;
+              if (typeof btn === 'object' && btn !== null && btn.label) {
+                const Icon = btn.icon;
+                return (
+                  <button
+                    key={idx}
+                    onClick={btn.onClick}
+                    className="btn-primary-action flex items-center space-x-1"
+                  >
+                    {Icon && <Icon className="w-3.5 h-3.5" />}
+                    <span>{btn.label}</span>
+                  </button>
+                );
+              }
+              return null;
+            })
+          : actionButtons}
       </div>
     </div>
   );

@@ -97,15 +97,28 @@ export const MembershipListView = () => {
            (m.associatedUserId?._id || m.associatedUserId) === currentUser?._id
   );
 
-  const actionButtons = [];
-  if (currentUser?.userRoleTier === 'CUSTOMER' && !userMembership) {
-    actionButtons.push({
-      label: 'Apply for Membership',
-      variant: 'primary',
-      icon: Plus,
-      onClick: () => setIsApplyModalOpen(true)
-    });
-  }
+  const actionButtons = (
+    <div className="flex items-center space-x-2">
+      {isAdminOrOperations() && (
+        <button
+          onClick={() => setIsSignupModalOpen(true)}
+          className="btn-primary-action flex items-center space-x-1"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>New Member Signup</span>
+        </button>
+      )}
+      {currentUser?.userRoleTier === 'CUSTOMER' && !userMembership && (
+        <button
+          onClick={() => setIsApplyModalOpen(true)}
+          className="btn-primary-action flex items-center space-x-1"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Apply for Membership</span>
+        </button>
+      )}
+    </div>
+  );
 
   const renderCustomerView = () => (
     <div className="p-8 max-w-xl mx-auto space-y-6">
@@ -415,7 +428,10 @@ export const MembershipListView = () => {
       <DuesPaymentConfirmationModal
         isOpen={!!confirmingMembership}
         onClose={() => setConfirmingMembership(null)}
+        membership={confirmingMembership}
         membershipRecord={confirmingMembership}
+        officerUser={currentUser}
+        onSuccess={handleDuesSuccess}
         onDuesPaidSuccess={handleDuesSuccess}
       />
 

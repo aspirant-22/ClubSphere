@@ -22,7 +22,15 @@ export default defineConfig({
       '/socket.io': {
         target: 'http://localhost:5000',
         ws: true,
-        changeOrigin: true
+        changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            if (err.code === 'ECONNRESET' || err.code === 'ECONNABORTED') {
+              return;
+            }
+            console.error('[Socket.IO Proxy Error]:', err.message);
+          });
+        }
       }
     }
   }

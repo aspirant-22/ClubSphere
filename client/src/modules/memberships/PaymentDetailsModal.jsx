@@ -9,14 +9,15 @@
 import React from 'react';
 import { X, Receipt, CheckCircle, ShieldCheck } from 'lucide-react';
 
-export const PaymentDetailsModal = ({ isOpen, onClose, membershipRecord }) => {
-  if (!isOpen || !membershipRecord) return null;
+export const PaymentDetailsModal = ({ isOpen, onClose, membershipRecord, membership }) => {
+  const activeRecord = membershipRecord || membership;
+  if (!isOpen || !activeRecord) return null;
 
-  const payment = membershipRecord.paymentDetails || {};
+  const payment = activeRecord.paymentDetails || {};
   const paidDateFormatted = payment.paidAt
     ? new Date(payment.paidAt).toLocaleString()
-    : membershipRecord.paymentDate
-    ? new Date(membershipRecord.paymentDate).toLocaleString()
+    : activeRecord.paymentDate
+    ? new Date(activeRecord.paymentDate).toLocaleString()
     : 'Recorded at Registration';
 
   return (
@@ -50,7 +51,7 @@ export const PaymentDetailsModal = ({ isOpen, onClose, membershipRecord }) => {
                 Payment Verified & Elevating Complete
               </div>
               <div className="text-2xs text-emerald-700">
-                Member ID: {membershipRecord.membershipSequenceCode}
+                Member ID: {activeRecord.membershipSequenceCode}
               </div>
             </div>
           </div>
@@ -59,21 +60,21 @@ export const PaymentDetailsModal = ({ isOpen, onClose, membershipRecord }) => {
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500">Member Name</span>
               <span className="font-semibold text-slate-800">
-                {membershipRecord.associatedUserId?.userFullName || 'Active Member'}
+                {activeRecord.associatedUserId?.fullName || activeRecord.associatedUserId?.userFullName || 'Active Member'}
               </span>
             </div>
 
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500">Membership Tier</span>
               <span className="font-semibold text-slate-800">
-                {membershipRecord.membershipTier}
+                {activeRecord.membershipTier}
               </span>
             </div>
 
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500">Amount Paid</span>
               <span className="font-bold text-emerald-700">
-                ₹{membershipRecord.duesAmountPayable || 500}
+                ₹{activeRecord.duesAmountPayable || 500}
               </span>
             </div>
 

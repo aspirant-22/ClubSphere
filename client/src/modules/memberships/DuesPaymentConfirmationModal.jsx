@@ -11,7 +11,17 @@ import { X, CheckCircle, CreditCard, Banknote, Sparkles, AlertCircle } from 'luc
 import { apiNetworkClient } from '../../services/apiNetworkClient.js';
 import { useSystemProcessing } from '../../context/SystemProcessingContext.jsx';
 
-export const DuesPaymentConfirmationModal = ({ isOpen, membership, officerUser, onClose, onSuccess }) => {
+export const DuesPaymentConfirmationModal = ({
+  isOpen,
+  membership,
+  membershipRecord,
+  officerUser,
+  onClose,
+  onSuccess,
+  onDuesPaidSuccess
+}) => {
+  const activeRecord = membership || membershipRecord;
+  const activeSuccess = onSuccess || onDuesPaidSuccess || (() => {});
   const [paymentMode, setPaymentMode] = useState('CASH');
   const [transactionId, setTransactionId] = useState('');
   const [paidAt, setPaidAt] = useState(new Date().toISOString().slice(0, 16));
@@ -19,11 +29,13 @@ export const DuesPaymentConfirmationModal = ({ isOpen, membership, officerUser, 
   const [errorMessage, setErrorMessage] = useState('');
   const { runWithProcessingLock } = useSystemProcessing();
 
-  if (!isOpen || !membership) return null;
+  if (!isOpen || !activeRecord) return null;
 
-  const officerTitle = officerUser?.userRoleTier === 'ADMIN'
-    ? `${officerUser?.fullName} — Club Executive / Treasurer`
-    : `${officerUser?.fullName} — Operations Lead`;
+  const officerTitle = officerUser?.fullName
+    ? (officerUser?.userRoleTier === 'ADMIN'
+        ? `${officerUser.fullName} — Club Executive / Treasurer`
+        : `${officerUser.fullName} — Operations Lead`)
+    : 'System Officer — Operations Lead';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,10 +51,10 @@ export const DuesPaymentConfirmationModal = ({ isOpen, membership, officerUser, 
           paymentMode,
           paymentMethod: paymentMode === 'CASH' ? 'CASH_PAYMENT' : 'ONLINE_GATEWAY',
           transactionId: paymentMode === 'ONLINE' ? transactionId.trim() : 'CASH_RECEIPT',
-          paidAmount: membership.duesAmountPayable || 500,
+          paidAmount: activeRecord.duesAmountPayable || 500,
           paidAt: new Date(paidAt).toISOString()
         };
-        await apiNetworkClient.post(`/memberships/${membership._id}/pay-dues`, payload);
+        await apiNetworkClient.post(`/memberships/${activeRecord._id}/pay-dues`, payload);
         setIsCelebration(true);
       }, 'Verifying payment & elevating membership...');
     } catch (err) {
@@ -52,7 +64,7 @@ export const DuesPaymentConfirmationModal = ({ isOpen, membership, officerUser, 
 
   const handleCloseAfterCelebration = () => {
     setIsCelebration(false);
-    onSuccess();
+    activeSuccess();
     onClose();
   };
 
@@ -79,7 +91,7 @@ export const DuesPaymentConfirmationModal = ({ isOpen, membership, officerUser, 
               </span>
               <h2 className="text-lg font-bold text-slate-900">Successfully! 1 new member added</h2>
               <p className="text-xs text-slate-500 font-mono">
-                {membership.associatedUserId?.fullName} ({membership.membershipSequenceCode})
+                {activeRecord.associatedUserId?.fullName} ({activeRecord.membershipSequenceCode})
               </p>
             </div>
             <p className="text-2xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
@@ -126,13 +138,13 @@ export const DuesPaymentConfirmationModal = ({ isOpen, membership, officerUser, 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-2xs font-semibold text-slate-600 uppercase mb-1">Student Applicant</label>
-                  <p className="text-xs font-bold text-slate-900 truncate">{membership.associatedUserId?.fullName}</p>
-                  <p className="text-2xs font-mono text-slate-500">{membership.membershipSequenceCode}</p>
+                  <p className="text-xs font-bold text-slate-900 truncate">{activeRecord.associatedUserId?.fullName}</p>
+                  <p className="text-2xs font-mono text-slate-500">{activeRecord.membershipSequenceCode}</p>
                 </div>
                 <div>
                   <label className="block text-2xs font-semibold text-slate-600 uppercase mb-1">Dues Amount</label>
-                  <p className="text-sm font-bold text-emerald-700">₹{membership.duesAmountPayable}</p>
-                  <p className="text-2xs text-purple-700 font-medium">{membership.membershipTier}</p>
+                  <p className="text-sm font-bold text-emerald-700">₹{activeRecord.duesAmountPayable}</p>
+                  <p className="text-2xs text-purple-700 font-medium">{activeRecord.membershipTier}</p>
                 </div>
               </div>
 
